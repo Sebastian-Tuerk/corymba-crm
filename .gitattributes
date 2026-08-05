@@ -1,0 +1,5 @@
+# Keep the CRM html normalized to LF so content-identical exports
+# from Downloads don't show up as line-ending-only changes.
+*.html text eol=lf
+*.ps1  text eol=crlf
+*.md   text eol=lf
