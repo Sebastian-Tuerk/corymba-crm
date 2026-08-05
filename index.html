@@ -668,7 +668,9 @@ function renderTable(){
 
 // ── Stats ──
 function renderStats(){
-  const vals=Object.values(crm);
+  // Count only leads actually in the current list (LEADS), not the full
+  // crm history which includes records from all previous call rounds.
+  const vals=LEADS.map(function(l){return getC(l.id);});
   const won=vals.filter(function(c){return c.status==='won';}).length;
   const inter=vals.filter(function(c){return c.status==='interested'||c.status==='won';}).length;
   const called=vals.filter(function(c){return c.status&&c.status!=='new';}).length;
