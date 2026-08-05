@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Corymba · Lead CRM</title><link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,400;0,500;1,400&family=Syne:wght@400;600;700&display=swap" rel="stylesheet"><style>
+:root{
+  --bg:#0f0f0f;--bg2:#161616;--bg3:#1e1e1e;--bg4:#252525;
+  --border:#2a2a2a;--border2:#333;--border3:#3a3a3a;
+  --text:#e8e6e0;--text2:#999;--text3:#555;
+  --green:#4ade80;--green2:#166534;--green3:#052e16;
+  --amber:#fbbf24;--amber2:#92400e;--amber3:#1c0a00;
+  --blue:#60a5fa;--blue2:#1e3a5f;--blue3:#0a1628;
+  --purple:#a78bfa;--purple2:#3b1f6e;--purple3:#120a24;
+  --teal:#2dd4bf;--teal2:#0f4f47;--teal3:#041a18;
+  --font-head:'Syne',sans-serif;--font-mono:'DM Mono',monospace;--r:6px;--r2:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--font-mono);font-size:13px;min-height:100vh}
+/* LOGIN */
+#login{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:100}
+.lcard{background:var(--bg2);border:1px solid var(--border2);border-radius:16px;padding:40px 44px;width:400px}
+.llogo{font-family:var(--font-head);font-size:24px;font-weight:700;margin-bottom:4px}.llogo em{color:var(--green);font-style:normal}
+.lsub{color:var(--text2);font-size:12px;margin-bottom:28px;line-height:1.6}
+.agrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:20px}
+.abtn{background:var(--bg3);border:2px solid var(--border);border-radius:var(--r2);padding:14px 8px;cursor:pointer;font-family:var(--font-mono);font-size:12px;color:var(--text2);transition:all .15s;text-align:center;width:100%}
+.abtn:hover{border-color:var(--green3);color:var(--text)}
+.abtn.sel{border-color:var(--green);color:var(--green);background:var(--green3)}
+.aav{width:36px;height:36px;border-radius:50%;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;font-family:var(--font-head)}
+.lbtn{width:100%;background:var(--green);color:#000;border:none;border-radius:var(--r);padding:13px;font-family:var(--font-mono);font-size:14px;font-weight:600;cursor:pointer;transition:opacity .15s;margin-top:6px}
+.lbtn:hover{opacity:.85}.lbtn:disabled{opacity:.3;cursor:not-allowed}
+/* SETUP */
+#setup{position:fixed;inset:0;background:var(--bg);display:none;align-items:center;justify-content:center;z-index:90}
+.scard{background:var(--bg2);border:1px solid var(--border2);border-radius:16px;padding:36px 40px;width:480px}
+.stitle{font-family:var(--font-head);font-size:18px;font-weight:600;margin-bottom:6px}
+.ssub{color:var(--text2);font-size:12px;line-height:1.7;margin-bottom:24px}
+.sfield{margin-bottom:16px}
+.slabel{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:6px}
+.sinp{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);padding:9px 12px;color:var(--text);font-family:var(--font-mono);font-size:12px;outline:none}
+.sinp:focus{border-color:var(--green)}
+.sinp.ok{border-color:var(--green)}
+.sinp.err{border-color:var(--red,#f87171)}
+.sbtn{width:100%;background:var(--green);color:#000;border:none;border-radius:var(--r);padding:11px;font-family:var(--font-mono);font-size:13px;font-weight:600;cursor:pointer;margin-top:6px}
+.sbtn:hover{opacity:.85}.sbtn:disabled{opacity:.35;cursor:not-allowed}
+.stest{font-size:11px;margin-top:8px;min-height:18px}
+.stest.ok{color:var(--green)}.stest.err{color:#f87171}
+.sskip{width:100%;background:none;border:1px solid var(--border2);border-radius:var(--r);padding:9px;font-family:var(--font-mono);font-size:12px;cursor:pointer;color:var(--text3);margin-top:8px}
+.sskip:hover{color:var(--text)}
+/* APP */
+#app{display:none;flex-direction:column;height:100vh;overflow:hidden}
+header{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 20px;height:50px;display:flex;align-items:center;gap:14px;flex:none}
+.hlogo{font-family:var(--font-head);font-size:15px;font-weight:700}.hlogo em{color:var(--green);font-style:normal}
+.htag{font-size:11px;color:var(--text3);padding:2px 8px;border:1px solid var(--border);border-radius:10px}
+.hsp{flex:1}
+.sync-row{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text3)}
+.sdot{width:7px;height:7px;border-radius:50%;background:var(--text3);flex:none;transition:background .3s}
+.sdot.live{background:var(--green)}.sdot.saving{background:var(--amber);animation:blink .4s infinite}.sdot.offline{background:#f87171}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+.apill{display:flex;align-items:center;gap:8px;background:var(--bg3);border:1px solid var(--border2);border-radius:20px;padding:4px 12px 4px 5px;font-size:12px;cursor:pointer}
+.apill:hover{border-color:var(--border3)}
+.adot{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;font-family:var(--font-head);flex:none}
+/* STATS */
+.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:var(--border);border-bottom:1px solid var(--border);flex:none}
+.sc{background:var(--bg2);padding:10px 16px}
+.sc-l{font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);margin-bottom:3px}
+.sc-v{font-size:19px;font-weight:500;font-family:var(--font-head)}
+/* TOOLBAR */
+.tb{padding:10px 16px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;gap:7px;flex-wrap:wrap;align-items:center;flex:none}
+.tbi{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);padding:6px 10px;color:var(--text);font-family:var(--font-mono);font-size:12px;outline:none}
+.tbi:focus{border-color:var(--green)}.tbi.search{flex:1;min-width:150px}
+select.tbi{cursor:pointer}
+.tbb{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);padding:6px 12px;color:var(--text2);font-family:var(--font-mono);font-size:12px;cursor:pointer;transition:all .12s;white-space:nowrap}
+.tbb:hover{color:var(--text);border-color:var(--border3)}.tbb.act{background:var(--green3);border-color:var(--green);color:var(--green)}
+/* BODY */
+.body{display:flex;flex:1;overflow:hidden;min-height:0}
+.tw{flex:1;overflow:auto;min-width:0}
+table{width:100%;border-collapse:collapse;min-width:760px}
+thead th{background:var(--bg2);padding:7px 12px;text-align:left;font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);border-bottom:1px solid var(--border);white-space:nowrap;cursor:pointer;user-select:none;position:sticky;top:0;z-index:2}
+thead th:hover{color:var(--text2)}
+tbody tr{border-bottom:1px solid var(--border);cursor:pointer;transition:background .08s}
+tbody tr:hover{background:var(--bg3)}
+tbody tr.sel{background:var(--bg4);box-shadow:inset 2px 0 0 var(--green)}
+tbody td{padding:8px 12px;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle}
+.c-n{width:22%}.c-sg{width:9%}.c-sc{width:7%}.c-ev{width:8%}.c-dk{width:6%}.c-cy{width:9%}.c-ph{width:13%}.c-st{width:10%}.c-ow{width:7%}.c-na{width:9%}
+.pip{display:inline-block;width:3px;height:13px;border-radius:2px;vertical-align:middle;margin-right:5px}
+/* STATUS */
+.sp{display:inline-block;padding:2px 7px;border-radius:8px;font-size:10px;font-weight:500;border:1px solid}
+.s-new{color:#444;border-color:#333}.s-called{color:var(--amber);border-color:var(--amber2);background:var(--amber3)}
+.s-callback{color:var(--purple);border-color:var(--purple2);background:var(--purple3)}
+.s-interested{color:var(--green);border-color:var(--green2);background:var(--green3)}
+.s-won{color:var(--teal);border-color:var(--teal2);background:var(--teal3)}
+.s-lost{color:var(--text3);border-color:var(--border2);background:var(--bg3)}
+/* EV */
+.eH{color:var(--green);font-weight:500}.eM{color:var(--amber)}.eL{color:var(--text2)}.eN{color:var(--text3)}.ep{color:var(--text3);font-style:italic}
+/* DETAIL */
+.dp{width:360px;flex:none;background:var(--bg2);border-left:1px solid var(--border);overflow-y:auto;display:none;flex-direction:column}
+.dp.open{display:flex}
+.dh{padding:16px;border-bottom:1px solid var(--border)}
+.dht{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:5px}
+.dname{font-family:var(--font-head);font-size:15px;font-weight:600;line-height:1.3;flex:1;margin-right:10px}
+.dclose{background:none;border:none;color:var(--text3);cursor:pointer;font-size:20px;line-height:1;flex:none}
+.dclose:hover{color:var(--text)}.dmeta{font-size:11px;color:var(--text2)}
+.ds{padding:14px 16px;border-bottom:1px solid var(--border)}
+.dst{font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);margin-bottom:10px}
+.dr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:7px;gap:10px}
+.drl{font-size:11px;color:var(--text2);flex:none;width:78px}
+.drv{font-size:12px;text-align:right;word-break:break-all;line-height:1.4}
+.drv a{color:var(--blue);text-decoration:none;font-size:11px}.drv a:hover{text-decoration:underline}
+.evbox{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);padding:8px 10px;font-size:11px;color:var(--green);line-height:1.7;margin-top:4px;min-height:36px}
+.evbox.mt{color:var(--text3);font-style:italic}
+.stg{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin-bottom:10px}
+.stb{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:7px 4px;font-family:var(--font-mono);font-size:10px;cursor:pointer;color:var(--text2);text-align:center;transition:all .1s;width:100%}
+.stb:hover{border-color:var(--border3);color:var(--text)}
+.stb.ac{border-color:var(--amber2);color:var(--amber);background:var(--amber3)}
+.stb.acb{border-color:var(--purple2);color:var(--purple);background:var(--purple3)}
+.stb.ai{border-color:var(--green2);color:var(--green);background:var(--green3)}
+.stb.aw{border-color:var(--teal2);color:var(--teal);background:var(--teal3)}
+.stb.al{border-color:var(--border2);color:var(--text3);background:var(--bg4)}
+.stb.ae{border-color:var(--teal2);color:var(--teal);background:var(--teal3)}
+.dsel{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);padding:7px 10px;color:var(--text);font-family:var(--font-mono);font-size:12px;outline:none;margin-bottom:10px;cursor:pointer}
+.dsel:focus{border-color:var(--green)}
+.dinp{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);padding:7px 10px;color:var(--text);font-family:var(--font-mono);font-size:12px;outline:none;margin-bottom:7px}
+.dinp:focus{border-color:var(--green)}
+.dnotes{width:100%;height:72px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);padding:8px 10px;color:var(--text);font-family:var(--font-mono);font-size:12px;resize:vertical;outline:none;line-height:1.5}
+.dnotes:focus{border-color:var(--green)}
+.srow{display:flex;align-items:center;gap:6px;margin-top:8px;flex-wrap:wrap}
+.sbtn{background:var(--green);color:#000;border:none;border-radius:var(--r);padding:6px 14px;font-family:var(--font-mono);font-size:12px;font-weight:500;cursor:pointer}
+.sbtn:hover{opacity:.85}.sok{font-size:11px;color:var(--green);display:none}
+.scrbtn{background:var(--bg3);border:1px solid var(--blue2);border-radius:var(--r);padding:6px 10px;color:var(--blue);font-family:var(--font-mono);font-size:11px;cursor:pointer}
+.scrbtn:hover{background:var(--blue3)}.amb{background:none;border:none;color:var(--text3);font-family:var(--font-mono);font-size:11px;cursor:pointer;margin-left:auto}
+.amb:hover{color:var(--text)}
+.actlist{display:flex;flex-direction:column;gap:6px;max-height:160px;overflow-y:auto}
+.acti{background:var(--bg3);border-radius:var(--r);padding:6px 10px;font-size:11px;line-height:1.5;border-left:2px solid var(--border2)}
+.acti-t{color:var(--text3);font-size:10px;margin-bottom:2px}
+/* MODALS */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:200;display:none;align-items:center;justify-content:center}
+.modal.open{display:flex}
+.mcard{background:var(--bg2);border:1px solid var(--border2);border-radius:16px;padding:26px 30px;width:500px;max-height:90vh;overflow-y:auto}
+.mcard.narrow{width:440px}
+.mtop{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px}
+.mtitle{font-family:var(--font-head);font-size:16px;font-weight:600}
+.mx{background:none;border:none;color:var(--text3);font-size:20px;cursor:pointer;line-height:1}.mx:hover{color:var(--text)}
+.cs-co{color:var(--green);font-size:12px;margin-bottom:18px}
+.cs-sec{margin-bottom:16px}.cs-lbl{font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);margin-bottom:7px}
+.cs-blk{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);padding:11px 13px;font-size:13px;line-height:1.9;color:var(--text)}
+.cs-blk strong{color:var(--green);font-weight:500}.cs-blk em{color:var(--amber);font-style:normal}
+.cs-ask{background:var(--green3);border:1px solid var(--green2);border-radius:var(--r);padding:11px 13px;font-size:13px;line-height:1.9;color:var(--green)}
+.cs-tip{background:var(--amber3);border:1px solid var(--amber2);border-radius:var(--r);padding:8px 12px;font-size:12px;color:var(--amber);line-height:1.6}
+.mbtn{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);padding:8px;font-family:var(--font-mono);font-size:12px;cursor:pointer;color:var(--text2);margin-top:6px}
+.mbtn:hover{color:var(--text)}
+.edrop{border:1px dashed var(--border2);border-radius:var(--r2);padding:26px;text-align:center;cursor:pointer;color:var(--text3);font-size:12px;transition:all .15s;margin:14px 0}
+.edrop:hover,.edrop.drag{border-color:var(--green);color:var(--green)}
+.etd{text-align:center;padding:60px;color:var(--text3)}
+.cb-cell{width:36px;padding:0 4px 0 12px!important;vertical-align:middle}
+input[type=checkbox]{width:14px;height:14px;cursor:pointer;accent-color:var(--green)}
+tbody tr.checked{background:var(--bg4)}
+tbody tr.checked.sel{background:var(--bg4)}
+.batch-bar{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:10px 16px;display:flex;align-items:center;gap:10px;box-shadow:0 4px 24px rgba(0,0,0,.5);z-index:50;white-space:nowrap;transition:opacity .2s}
+.batch-bar.hidden{opacity:0;pointer-events:none}
+.batch-count{font-size:13px;color:var(--text);font-weight:500;min-width:80px}
+.batch-sep{width:1px;height:20px;background:var(--border2);flex:none}
+.batch-label{font-size:11px;color:var(--text2);flex:none}
+.batch-sel{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);padding:5px 8px;color:var(--text);font-family:var(--font-mono);font-size:11px;outline:none;cursor:pointer}
+.batch-sel:focus{border-color:var(--green)}
+.batch-btn{border:none;border-radius:var(--r);padding:6px 14px;font-family:var(--font-mono);font-size:11px;font-weight:500;cursor:pointer;transition:opacity .12s}
+.batch-apply{background:var(--green);color:#000}.batch-apply:hover{opacity:.85}
+.batch-clear{background:var(--bg3);border:1px solid var(--border2);color:var(--text2)}.batch-clear:hover{color:var(--text)}
+.stb.an{border-color:var(--border2);color:var(--text2)}
+.c-cb{width:36px}
+::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+</style></head><body>
+<div id="login" style="position:fixed;inset:0;background:#0f0f0f;display:flex;align-items:center;justify-content:center;z-index:100">
+  <div style="background:#1a1a1a;border:1px solid #333;border-radius:16px;padding:36px 40px;width:380px;font-family:Arial,sans-serif">
+    <div style="font-size:22px;font-weight:700;color:#fff;margin-bottom:4px">Corymba&#183;CRM</div>
+    <div style="color:#777;font-size:12px;margin-bottom:26px;line-height:1.6">EV Fleet Outreach &mdash; W&auml;hle dein Profil</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:18px" id="agrid">
+      <button id="btn-luca" onclick="selAgent(this,'luca','Luca','#4ade80','#052e16','LU')" style="background:#111;border:2px solid #333;border-radius:10px;padding:14px 6px;cursor:pointer;color:#999;font-size:12px;font-family:Arial,sans-serif;transition:all 0.15s">
+        <div style="width:34px;height:34px;border-radius:50%;background:#052e16;color:#4ade80;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;margin:0 auto 7px">LU</div>Luca
+      </button>
+      <button id="btn-isabell" onclick="selAgent(this,'isabell','Isabell','#60a5fa','#0a1628','IS')" style="background:#111;border:2px solid #333;border-radius:10px;padding:14px 6px;cursor:pointer;color:#999;font-size:12px;font-family:Arial,sans-serif;transition:all 0.15s">
+        <div style="width:34px;height:34px;border-radius:50%;background:#0a1628;color:#60a5fa;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;margin:0 auto 7px">IS</div>Isabell
+      </button>
+      <button id="btn-sebastian" onclick="selAgent(this,'sebastian','Sebastian','#a78bfa','#120a24','SE')" style="background:#111;border:2px solid #333;border-radius:10px;padding:14px 6px;cursor:pointer;color:#999;font-size:12px;font-family:Arial,sans-serif;transition:all 0.15s">
+        <div style="width:34px;height:34px;border-radius:50%;background:#120a24;color:#a78bfa;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;margin:0 auto 7px">SE</div>Sebastian
+      </button>
+    </div>
+    <button id="lbtn" disabled onclick="doLogin()" style="width:100%;background:#4ade80;color:#000;border:none;border-radius:8px;padding:12px;font-size:14px;font-weight:700;cursor:not-allowed;opacity:0.35;font-family:Arial,sans-serif">Start calling &rarr;</button>
+  </div>
+</div>
+
+<div id="setup" style="display:none;position:fixed;inset:0;background:#0f0f0f;align-items:center;justify-content:center;z-index:90">
+  <div style="background:#1a1a1a;border:1px solid #333;border-radius:16px;padding:32px 36px;width:460px;font-family:Arial,sans-serif">
+    <div style="font-size:17px;font-weight:700;color:#fff;margin-bottom:6px">Live-Sync verbinden</div>
+    <div style="color:#777;font-size:12px;margin-bottom:20px;line-height:1.7">Supabase-Zugangsdaten eingeben f&uuml;r Echtzeit-Sync. Einmalig pro Ger&auml;t.</div>
+    <div style="margin-bottom:14px">
+      <div style="font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:#555;margin-bottom:5px">Supabase Project URL</div>
+      <input id="sb-url" placeholder="https://xxxx.supabase.co" oninput="clearTest()" style="width:100%;background:#111;border:1px solid #333;border-radius:6px;padding:9px 12px;color:#fff;font-size:12px;font-family:monospace;box-sizing:border-box;outline:none">
+    </div>
+    <div style="margin-bottom:14px">
+      <div style="font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:#555;margin-bottom:5px">Supabase Anon Key</div>
+      <input id="sb-key" placeholder="sb_publishable_..." oninput="clearTest()" style="width:100%;background:#111;border:1px solid #333;border-radius:6px;padding:9px 12px;color:#fff;font-size:12px;font-family:monospace;box-sizing:border-box;outline:none">
+    </div>
+    <div id="stest" style="font-size:11px;margin-bottom:8px;min-height:16px;color:#f87171"></div>
+    <button id="stbtn" onclick="testAndSave()" style="width:100%;background:#4ade80;color:#000;border:none;border-radius:6px;padding:11px;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:8px;font-family:Arial,sans-serif">Test connection &amp; continue &rarr;</button>
+    <button onclick="skipSetup()" style="width:100%;background:none;border:1px solid #333;border-radius:6px;padding:9px;font-size:12px;cursor:pointer;color:#777;font-family:Arial,sans-serif">Skip &mdash; use local storage only</button>
+  </div>
+</div>
+
+<div class="modal" id="modal-script"><div class="mcard" id="mcard-script"></div></div>
+<div class="modal" id="modal-enrich">
+  <div class="mcard narrow">
+    <div class="mtop"><div class="mtitle">Import EV scores</div><button class="mx" onclick="closeM('modal-enrich')">&#215;</button></div>
+    <p style="font-size:12px;color:var(--text2);line-height:1.6;margin-top:6px">After running <code>enrich_ev_intent.py</code>, drop <code>enriched_leads.csv</code> here.</p>
+    <div class="edrop" id="edrop" onclick="document.getElementById('fi').click()">Drop enriched_leads.csv here or click to browse</div>
+    <input type="file" id="fi" accept=".csv" style="display:none" onchange="handleFile(this)">
+    <button class="mbtn" onclick="closeM('modal-enrich')">Cancel</button>
+  </div>
+</div>
+
+<div class="batch-bar hidden" id="batch-bar">
+  <span class="batch-count" id="batch-count">0 selected</span>
+  <div class="batch-sep"></div>
+  <span class="batch-label">Assign to</span>
+  <select class="batch-sel" id="batch-owner">
+    <option value="">— agent —</option>
+  </select>
+  <div class="batch-sep"></div>
+  <span class="batch-label">Set status</span>
+  <select class="batch-sel" id="batch-status">
+    <option value="">— status —</option>
+    <option value="new">New</option>
+    <option value="called">Called</option>
+    <option value="interested">Interested</option>
+    <option value="not_interested">Not interested</option>
+    <option value="email">Email sent</option>
+    <option value="won">Won</option>
+  </select>
+  <div class="batch-sep"></div>
+  <button class="batch-btn batch-apply" onclick="applyBatch()">Apply</button>
+  <button class="batch-btn batch-clear" onclick="clearSelection()">Clear</button>
+</div>
+
+<div id="app">
+  <header>
+    <div class="hlogo">Corymba<em>&#183;</em>CRM</div>
+    <div class="htag">165 leads &middot; R1+R2</div>
+    <div class="hsp"></div>
+    <div class="sync-row"><div class="sdot" id="sdot"></div><span id="stxt">Connecting...</span></div>
+    <div style="width:10px"></div>
+    <div class="apill" id="apill" onclick="doLogout()"></div>
+  </header>
+  <div class="stats" id="stats-bar"></div>
+  <div class="tb">
+    <input class="tbi search" id="search" placeholder="Search name, city, phone&hellip;" oninput="applyFilters()">
+    <select class="tbi" id="fRound" onchange="applyFilters()">
+      <option value="">R1 + R2</option>
+      <option value="R1">Round 1 only</option>
+      <option value="R2">Round 2 only</option>
+    </select>
+    <select class="tbi" id="fSeg" onchange="applyFilters()">
+      <option value="">All segments</option>
+      <option value="Taxi">Taxi</option>
+      <option value="Logistics">Logistics</option>
+      <option value="Logistics (Major)">Logistics (Major)</option>
+      <option value="Dealer">Car Dealership</option>
+      <option value="Rental">Car Rental</option>
+      <option value="Fleet (New)">Fleet (New)</option>
+    </select>
+    <select class="tbi" id="fCity" onchange="applyFilters()"><option value="">All cities</option></select>
+    <select class="tbi" id="fSt" onchange="applyFilters()">
+      <option value="">All statuses</option>
+      <option value="new">New</option>
+      <option value="called">Called</option>
+      <option value="interested">Interested</option>
+      <option value="not_interested">Not interested</option>
+      <option value="email">Email sent</option>
+      <option value="won">Won</option>
+    </select>
+    <select class="tbi" id="fEv" onchange="applyFilters()">
+      <option value="">All EV tiers</option>
+      <option value="HIGH">HIGH</option>
+      <option value="MEDIUM">MEDIUM</option>
+      <option value="LOW">LOW</option>
+      <option value="NONE">No signal</option>
+    </select>
+    <select class="tbi" id="fOwn" onchange="applyFilters()"><option value="">All agents</option></select>
+    <button class="tbb" id="mine-btn" onclick="toggleMine()">My leads</button>
+    <button class="tbb" id="email-btn" onclick="toggleEmailFilter()">&#9993; Next action / Email</button>
+    <button class="tbb" onclick="openM('modal-enrich')">&#9889; EV scores</button>
+    <button class="tbb" onclick="exportCSV()">&#8595; Export</button>
+  </div>
+  <div class="body">
+    <div class="tw">
+      <table>
+        <thead><tr>
+          <th class="c-cb"><input type="checkbox" id="chk-all" onclick="toggleAll(this)" title="Select all"></th>
+          <th class="c-n" onclick="srt('n')">Company</th>
+          <th class="c-sg" onclick="srt('seg')">Segment</th>
+          <th class="c-sc" onclick="srt('sc')">Score &#8595;</th>
+          <th class="c-ev" onclick="srt('ev')">EV intent</th>
+          <th class="c-dk" onclick="srt('dk')">Dist</th>
+          <th class="c-cy" onclick="srt('cy')">City</th>
+          <th class="c-ph">Phone</th>
+          <th class="c-st" onclick="srt('st')">Status</th>
+          <th class="c-ow" onclick="srt('own')">Agent</th>
+          <th class="c-na">Next action</th>
+        </tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+    <div class="dp" id="dp"></div>
+  </div>
+</div>
+<script>
+const AGENTS=[  {id:"luca",name:"Luca",color:"#4ade80",bg:"#052e16",ini:"LU"},  {id:"isabell",name:"Isabell",color:"#60a5fa",bg:"#0a1628",ini:"IS"},  {id:"sebastian",name:"Sebastian",color:"#a78bfa",bg:"#120a24",ini:"SE"}];
+const ST={new:"New",called:"Called",interested:"Interested",not_interested:"Not interested",email:"Email sent",won:"Won"};
+const LEADS=[{"id":"ChIJhQ_nyhL_nkcRarLKKeZTdow","n":"Taxi IN GmbH - Taxiservice in Ingolstadt","cat":"Taxi","seg":"Taxi","round":"R1","sc":89,"dk":0.8,"cy":"Ingolstadt","ad":"Robert-Bosch-Straße 7, 85053 Ingolstadt, Germany","ph":"0841 1428550","wb":"http://www.taxi-in.de/","rt":4.7,"rv":232,"es":0,"et":"","eg":"","priority":90,"ev_signal":false,"pre_called":true},{"id":"ChIJJdjFb2s3o0cRnoP_trbY6mQ","n":"Fulda Taxi","cat":"Taxi","seg":"Taxi","round":"R1","sc":85,"dk":1.2,"cy":"Fulda","ad":"Buttlarstraße 33, 36039 Fulda, Germany","ph":"0661 20061332","wb":"http://www.fuldataxi.de/","rt":4.9,"rv":258,"es":0,"et":"","eg":"","priority":86,"ev_signal":false,"pre_called":true},{"id":"ChIJyVx3lFKXnkcRRHs10wHz-P4","n":"Taxistand P+R Platz Augsburg Hammerschmiede","cat":"Taxi","seg":"Taxi","round":"R2","sc":73,"dk":0.7,"cy":"Augsburg","ad":"Lechhausen-West, 86169 Augsburg, Germany","ph":"0821 35025","wb":"","rt":5.0,"rv":3,"es":0,"et":"","eg":"","priority":86,"ev_signal":false,"pre_called":false},{"id":"ChIJ-0Ptr4c3o0cR1eZnRUep2F0","n":"Taxi Lorenz","cat":"Taxi","seg":"Taxi","round":"R1","sc":69,"dk":1.9,"cy":"Fulda","ad":"Am bhf 3, 36037 Fulda, Germany","ph":"0179 2892892","wb":"","rt":5.0,"rv":17,"es":0,"et":"","eg":"","priority":77,"ev_signal":false,"pre_called":true},{"id":"ChIJlUpSvxodAYoRW0-uu2DJvI8","n":"Main Taxi Hanau","cat":"Taxi","seg":"Taxi","round":"R1","sc":78,"dk":2.6,"cy":"Hanau","ad":"Helmholtzstraße 3, 63454 Hanau, Germany","ph":"0176 13786786","wb":"https://www.maintaxihanau.de/","rt":5.0,"rv":32,"es":0,"et":"","eg":"","priority":76,"ev_signal":false,"pre_called":true},{"id":"ChIJTQPc-b33okcRfWNy9mmAh-Y","n":"TAXI AUTO SCHWEINFURT","cat":"Taxi","seg":"Taxi","round":"R1","sc":81,"dk":2.9,"cy":"Schweinfurt","ad":"Kornacherstraße 3, 97421 Schweinfurt, Germany","ph":"09721 3704764","wb":"http://www.taxidirekt-schweinfurt.de/","rt":4.9,"rv":244,"es":0,"et":"","eg":"","priority":75,"ev_signal":false,"pre_called":true},{"id":"ChIJ-VHM1_j_nkcRCobsHBqUxbk","n":"Taxistandarena","cat":"Taxi","seg":"Taxi","round":"R2","sc":62,"dk":2.5,"cy":"Ingolstadt","ad":"Monikaviertel, 85053 Ingolstadt, Germany","ph":"0841 9991222","wb":"http://taxichrist.de/","rt":0,"rv":0,"es":0,"et":"","eg":"","priority":71,"ev_signal":false,"pre_called":false},{"id":"ChIJNUNkRtUWvUcRz7NetBYSeHw","n":"Taxi service Hanau city and country E.G.","cat":"Taxi","seg":"Taxi","round":"R1","sc":74,"dk":3.3,"cy":"Hanau","ad":"Am Hauptbahnhof 14A, 63450 Hanau, Germany","ph":"06181 24111","wb":"https://www.taxi-hanau.de/","rt":3.4,"rv":203,"es":0,"et":"","eg":"","priority":70,"ev_signal":false,"pre_called":true},{"id":"ChIJA3_2yuGmPAQREGyDGBnj9D4","n":"Taxi Schweinfurt - Taskin & Ulu GbR","cat":"Taxi","seg":"Taxi","round":"R1","sc":71,"dk":3.4,"cy":"Schweinfurt","ad":"Zehntstraße 1, 97421 Schweinfurt, Germany","ph":"09721 4798480","wb":"https://g.co/kgs/ynrju1k","rt":3.8,"rv":26,"es":0,"et":"","eg":"","priority":69,"ev_signal":false,"pre_called":true},{"id":"ChIJtXNORwa9nkcRLiFLYObPLPk","n":"Fernbushalt Augsburg (P+R Oberhausen Nord) ,","cat":"Taxi","seg":"Taxi","round":"R2","sc":63,"dk":3.3,"cy":"Augsburg","ad":"Biberbachstraße 9, 86154 Augsburg, Germany","ph":"","wb":"https://taxi-de.com/96/","rt":3.4,"rv":61,"es":0,"et":"","eg":"","priority":67,"ev_signal":false,"pre_called":false},{"id":"ChIJA7ngrRgXvUcRQS5B2Nhxn-c","n":"ASSTAL Taxibetriebsgesellschaft","cat":"Taxi","seg":"Taxi","round":"R1","sc":76,"dk":4.2,"cy":"Mühlheim am Main","ad":"Dörnigheimer Weg 1, 63477 Maintal, Germany","ph":"06181 441044","wb":"http://asstal.de/","rt":4.4,"rv":106,"es":0,"et":"","eg":"","priority":65,"ev_signal":false,"pre_called":true},{"id":"ChIJEXudBACRokcR6_8GBpVMpyk","n":"Taxistand Marktplatz","cat":"Taxi","seg":"Taxi","round":"R2","sc":59,"dk":3.5,"cy":"Höchberg","ad":"Rückermainstraße, 97070 Würzburg, Germany","ph":"0931 19410","wb":"","rt":4.0,"rv":1,"es":0,"et":"","eg":"","priority":65,"ev_signal":false,"pre_called":false},{"id":"ChIJhVVtbBEXvUcRy2exmv66Ebg","n":"Hanau Taxi Forum","cat":"Taxi","seg":"Taxi","round":"R1","sc":69,"dk":4.3,"cy":"Hanau","ad":"Neil-Armstrong-Straße 4c, 63457 Hanau, Germany","ph":"06181 1808484","wb":"https://hanau-taxi-forum.de/","rt":2.9,"rv":31,"es":0,"et":"","eg":"","priority":63,"ev_signal":false,"pre_called":true},{"id":"ChIJm4S0pBz2vEcRXTkRVN-STR4","n":"SPARCAR - GIEßEN","cat":"Taxi","seg":"Taxi","round":"R1","sc":73,"dk":4.9,"cy":"Gießen","ad":"Rudolf-Diesel-Straße 9, 35394 Gießen, Germany","ph":"0641 33333","wb":"http://www.sparcar-giessen.de/","rt":4.7,"rv":97,"es":0,"et":"","eg":"","priority":60,"ev_signal":false,"pre_called":true},{"id":"ChIJJSgo1CQ7vUcR4NfuipdbZ0U","n":"Fahrzeug-Service-Heuzeroth","cat":"Fleet","seg":"Logistics","round":"R2","sc":86,"dk":0.2,"cy":"Freigericht","ad":"Rosenstraße 6, 63579 Freigericht, Germany","ph":"06055 8820596","wb":"http://www.heuzeroth-kfz.de/?utm_source=Google&utm_medium=organic&utm_","rt":4.7,"rv":72,"es":0,"et":"","eg":"","priority":99,"ev_signal":true,"pre_called":false},{"id":"ChIJualxuGYslkcRHjfCydxk1cw","n":"Merk ecoLog GmbH","cat":"Logistics","seg":"Logistics","round":"R1","sc":77,"dk":0.3,"cy":"Worms","ad":"Im Winkel 4, 67547 Worms, Germany","ph":"06241 8545309","wb":"http://www.merk-ecolog.de/","rt":3.8,"rv":11,"es":0,"et":"","eg":"","priority":98,"ev_signal":true,"pre_called":true},{"id":"ChIJVaLqIcJWn0cRuNG6KhoxxnQ","n":"IVECO Nuremberg","cat":"Fleet","seg":"Logistics","round":"R1","sc":85,"dk":1.0,"cy":"Nürnberg","ad":"Dieselstraße 65, 90441 Nürnberg, Germany","ph":"0911 96600","wb":"https://iveco-bayern.de/","rt":4.3,"rv":326,"es":0,"et":"","eg":"","priority":93,"ev_signal":true,"pre_called":true},{"id":"ChIJQRfBKWf3okcRcv2j_3LLglI","n":"ecobox by amthor","cat":"Logistics","seg":"Logistics","round":"R2","sc":71,"dk":2.7,"cy":"Schweinfurt","ad":"Niederwerrner Str. 18, 97421 Schweinfurt, Germany","ph":"09721 72940","wb":"http://www.ecobox-amthor.de/","rt":5.0,"rv":9,"es":0,"et":"","eg":"","priority":78,"ev_signal":true,"pre_called":false},{"id":"ChIJIcpghEUOvUcRsfpqh4DU4a4","n":"Autowerkstatt Frankfurt - MonteAuto - Ölwechsel - Klima","cat":"Fleet","seg":"Logistics","round":"R2","sc":79,"dk":3.7,"cy":"Mühlheim am Main","ad":"Bruno-Dreßler-Straße 11, 63477 Maintal, Germany","ph":"069 17289715","wb":"http://www.autowerkstatt-frankfurt.com/","rt":5.0,"rv":112,"es":0,"et":"","eg":"","priority":71,"ev_signal":true,"pre_called":false},{"id":"ChIJW-u6aUNHu0cRBPxdoWd2fDw","n":"IVECO Kassel","cat":"Fleet","seg":"Logistics","round":"R2","sc":77,"dk":3.6,"cy":"Lohfelden","ad":"Richard-Roosen-Straße 1, 34123 Kassel, Germany","ph":"0561 9487980","wb":"http://kassel.iveco.de/","rt":4.1,"rv":267,"es":0,"et":"","eg":"","priority":71,"ev_signal":true,"pre_called":false},{"id":"ChIJPTgmwvO0vEcRHUNOKW6ZC0c","n":"Zweirad-Center Zöller","cat":"Fleet","seg":"Logistics","round":"R1","sc":90,"dk":0.2,"cy":"Schlitz","ad":"Bahnhofstraße 34, 36110 Schlitz, Germany","ph":"06642 1666","wb":"http://www.zcz.de/","rt":4.7,"rv":332,"es":0,"et":"","eg":"","priority":86,"ev_signal":false,"pre_called":true},{"id":"ChIJlZ2fJGIslkcRZSBRdf934u8","n":"Autoteile Bechtoldt GmbH","cat":"Fleet","seg":"Logistics","round":"R1","sc":90,"dk":0.2,"cy":"Worms","ad":"Cornelius-Heyl-Straße 54, 67547 Worms, Germany","ph":"06241 2090690","wb":"http://www.autoteile-bechtoldt.de/","rt":4.5,"rv":102,"es":0,"et":"","eg":"","priority":86,"ev_signal":false,"pre_called":true},{"id":"ChIJi6aZbNpovUcReqNE0Y8iIh0","n":"Reinhard GmbH & Co. KG (Silo- und Schüttguttransporte /","cat":"Logistics","seg":"Logistics","round":"R2","sc":83,"dk":0.1,"cy":"Groß-Zimmern","ad":"Max-Planck-Straße 14, 64846 Groß-Zimmern, Germany","ph":"06071 42281","wb":"https://www.reinhard-gruppe.de/","rt":4.6,"rv":65,"es":0,"et":"","eg":"","priority":86,"ev_signal":false,"pre_called":false},{"id":"ChIJOZUmQdpovUcRfp9tyQXbXpk","n":"Möbel-Transport GmbH","cat":"Logistics","seg":"Logistics","round":"R2","sc":82,"dk":0.1,"cy":"Groß-Zimmern","ad":"Max-Planck-Straße 16, 64846 Groß-Zimmern, Germany","ph":"06071 74304","wb":"http://moebel-transport-logistik.de/","rt":4.0,"rv":63,"es":0,"et":"","eg":"","priority":86,"ev_signal":false,"pre_called":false},{"id":"ChIJ673u11k7vUcR9fHQnWQLNng","n":"FF Service Center GmbH & Co. KG","cat":"Fleet","seg":"Logistics","round":"R1","sc":90,"dk":0.2,"cy":"Freigericht","ad":"Borsigstraße 1, 63579 Freigericht, Germany","ph":"06055 9345130","wb":"http://www.ff-service-center.de/","rt":4.8,"rv":119,"es":0,"et":"","eg":"","priority":85,"ev_signal":false,"pre_called":true},{"id":"ChIJR2Ma79Amo0cRELeggI6MQp0","n":"Reifen Müller GmbH & Co. KG","cat":"Fleet","seg":"Logistics","round":"R1","sc":90,"dk":0.3,"cy":"Bad Brückenau","ad":"Kissinger Str. 30, 97769 Bad Brückenau, Germany","ph":"09741 931684","wb":"https://bad-brueckenau.reifen-mueller.com/","rt":4.6,"rv":111,"es":0,"et":"","eg":"","priority":85,"ev_signal":false,"pre_called":true},{"id":"ChIJ3y2NP3v3okcRm-6et1vg1V8","n":"Reifen Feser GmbH","cat":"Fleet","seg":"Logistics","round":"R1","sc":90,"dk":0.3,"cy":"Schweinfurt","ad":"Alois-Türk-Straße 7-9, 97424 Schweinfurt, Germany","ph":"09721 730720","wb":"http://www.reifen-feser.de/","rt":4.8,"rv":377,"es":0,"et":"","eg":"","priority":85,"ev_signal":false,"pre_called":true},{"id":"ChIJMe8EEMdovUcRsxucxndyEQI","n":"MH-Umzugsdienst UG","cat":"Logistics","seg":"Logistics","round":"R2","sc":88,"dk":0.4,"cy":"Groß-Zimmern","ad":"Weberstraße 29 A, 64846 Groß-Zimmern, Germany","ph":"06071 7382530","wb":"https://mh-umzug.de/","rt":5.0,"rv":275,"es":0,"et":"","eg":"","priority":85,"ev_signal":false,"pre_called":false},{"id":"ChIJ_4OBac0mo0cRogZij2hezaM","n":"Car Parts GmbH + Co. KG (ehm. Autoteile Reese GmbH)","cat":"Fleet","seg":"Logistics","round":"R2","sc":86,"dk":0.1,"cy":"Bad Brückenau","ad":"Kissinger Str. 14 - 16, 97769 Bad Brückenau, Germany","ph":"09741 938995","wb":"https://www.carpartsgmbh.com/","rt":4.5,"rv":32,"es":0,"et":"","eg":"","priority":85,"ev_signal":false,"pre_called":false},{"id":"ChIJHSn8VkWomUcR0Y6Nz6YVkak","n":"Kast Robert Umzüge","cat":"Logistics","seg":"Logistics","round":"R2","sc":84,"dk":0.3,"cy":"Schwäbisch Gmünd","ad":"Im Laichle 13, 73527 Schwäbisch Gmünd, Germany","ph":"07171 75640","wb":"https://www.kast-umzuege.de/","rt":4.9,"rv":48,"es":0,"et":"","eg":"","priority":85,"ev_signal":false,"pre_called":false},{"id":"ChIJHZkm5EEro0cRwl6j57Er3x0","n":"Reifen Simon e.K. Zentrale Schlüchtern","cat":"Fleet","seg":"Logistics","round":"R1","sc":90,"dk":0.4,"cy":"Schlüchtern","ad":"Fuldaer Str. 35, 36381 Schlüchtern, Germany","ph":"06661 96690","wb":"http://www.reifen-simon.com/","rt":4.4,"rv":483,"es":0,"et":"","eg":"","priority":84,"ev_signal":false,"pre_called":true},{"id":"ChIJd2CUiL65pEcRuJdXMfteEhQ","n":"pitstop.de Eschwege","cat":"Fleet","seg":"Logistics","round":"R2","sc":86,"dk":0.3,"cy":"Eschwege","ad":"Bahnhofstraße 5, 37269 Eschwege, Germany","ph":"05651 331029","wb":"https://www.pitstop.de/","rt":4.4,"rv":56,"es":0,"et":"","eg":"","priority":84,"ev_signal":false,"pre_called":false},{"id":"ChIJfUK4wWMslkcRAyyouRDlz9M","n":"Nalu Schrott-und Metallhandels GmbH","cat":"Fleet","seg":"Logistics","round":"R2","sc":86,"dk":0.3,"cy":"Worms","ad":"Cornelius-Heyl-Straße 51, 67547 Worms, Germany","ph":"06241 9720027","wb":"https://nalu-schrott.de/","rt":4.6,"rv":30,"es":0,"et":"","eg":"","priority":84,"ev_signal":false,"pre_called":false},{"id":"ChIJXcEZ79YFvUcRsbW-M782B-4","n":"KAMIL Transport & Gebäudeservice","cat":"Logistics","seg":"Logistics","round":"R2","sc":84,"dk":0.4,"cy":"Niederdorfelden","ad":"Berger Str. 21, 61138 Niederdorfelden, Germany","ph":"01573 1837303","wb":"https://www.kamil-tgs.de/","rt":5.0,"rv":40,"es":0,"et":"","eg":"","priority":84,"ev_signal":false,"pre_called":false},{"id":"ChIJqU0JlE-bvUcRjcLGA5y2D24","n":"1A Umzug & Entrümpelung","cat":"Logistics","seg":"Logistics","round":"R2","sc":84,"dk":0.5,"cy":"Bodenheim","ad":"Am Kuemmerling 7, 55294 Bodenheim, Germany","ph":"06135 7019596","wb":"http://1a-rheinmain.de/","rt":4.8,"rv":88,"es":0,"et":"","eg":"","priority":84,"ev_signal":false,"pre_called":false},{"id":"ChIJZ4b4pP-Vo0cR2VCcaZvGzCY","n":"Gebr. Dobberkau e.K.","cat":"Logistics","seg":"Logistics","round":"R2","sc":84,"dk":0.4,"cy":"Schleusingen","ad":"Am Sättel 16, 98553 Schleusingen, Germany","ph":"036841 44444","wb":"http://www.dobberkau.com/","rt":5.0,"rv":83,"es":0,"et":"","eg":"","priority":84,"ev_signal":false,"pre_called":false},{"id":"ChIJ5VmeVC05o0cRYSuR1q4cUL4","n":"Klüber - Transport & Spedition","cat":"Logistics","seg":"Logistics","round":"R2","sc":78,"dk":0.2,"cy":"Dipperz","ad":"Gewerbepark 7-9, 36160 Dipperz, Germany","ph":"06657 6091620","wb":"https://www.klueber-transport.de/","rt":4.5,"rv":14,"es":0,"et":"","eg":"","priority":84,"ev_signal":false,"pre_called":false},{"id":"ChIJzy-iL6hioUcRSIhXx62-FjY","n":"Peter Schuppe Transporte","cat":"Logistics","seg":"Logistics","round":"R2","sc":78,"dk":0.2,"cy":"Föritztal","ad":"Bahnhofstraße 29, 96524 Föritztal, Germany","ph":"036764 70834","wb":"http://www.schuppe-bau.de/","rt":4.6,"rv":9,"es":0,"et":"","eg":"","priority":84,"ev_signal":false,"pre_called":false},{"id":"ChIJT3-6M2X_nkcRdfSdXQIj2lg","n":"Autoteile Streb Industrie- und Werkstättenbedarf GmbH","cat":"Fleet","seg":"Logistics","round":"R1","sc":94,"dk":0.7,"cy":"Ingolstadt","ad":"Carl-Benz-Straße 11, 85053 Ingolstadt, Germany","ph":"0841 964130","wb":"https://www.autoteile-streb.de/","rt":4.7,"rv":527,"es":0,"et":"","eg":"","priority":83,"ev_signal":false,"pre_called":true},{"id":"ChIJWbT341qomUcRL-jatt5DD5E","n":"Autopflege ES","cat":"Fleet","seg":"Logistics","round":"R1","sc":91,"dk":0.6,"cy":"Schwäbisch Gmünd","ad":"Deinbacher Str. 35, 73527 Schwäbisch Gmünd, Germany","ph":"07171 9411489","wb":"http://www.auto-pflege-es.de/","rt":4.9,"rv":112,"es":0,"et":"","eg":"","priority":83,"ev_signal":false,"pre_called":true},{"id":"ChIJEXpaYnv_nkcRJ4fIhNkyGcE","n":"stop+go Systemzentrale GmbH","cat":"Fleet","seg":"Logistics","round":"R1","sc":90,"dk":0.6,"cy":"Ingolstadt","ad":"Manchinger Str. 136, 85053 Ingolstadt, Germany","ph":"0841 9515970","wb":"http://www.stopandgo.de/","rt":4.5,"rv":233,"es":0,"et":"","eg":"","priority":83,"ev_signal":false,"pre_called":true},{"id":"ChIJU0OTapk1o0cRgKTEomSuFgo","n":"VK-UMZÜGE","cat":"Logistics","seg":"Logistics","round":"R2","sc":84,"dk":0.6,"cy":"Fulda","ad":"Carl-Schurz-Straße 21, 36041 Fulda, Germany","ph":"01577 8820353","wb":"http://vk-umzuege.de/","rt":5.0,"rv":24,"es":0,"et":"","eg":"","priority":83,"ev_signal":false,"pre_called":false},{"id":"ChIJ7zwKb3kEo0cRYvVeiAdE0AA","n":"Reifen Müller GmbH & Co. KG","cat":"Fleet","seg":"Logistics","round":"R1","sc":83,"dk":0.3,"cy":"Bad Neustadt an der Saale","ad":"Saalestraße 11, 97616 Bad Neustadt an der Saale, German","ph":"09771 4744","wb":"","rt":4.7,"rv":167,"es":0,"et":"","eg":"","priority":83,"ev_signal":false,"pre_called":true},{"id":"ChIJr3VeO1LEokcR62sGPDLNc0s","n":"Bernhard Fischer Spedition GmbH","cat":"Logistics","seg":"Logistics","round":"R2","sc":83,"dk":0.5,"cy":"Gemünden am Main","ad":"Würzburger Str. 36, 97737 Gemünden am Main, Germany","ph":"09351 2910","wb":"http://www.bf-spedition.de/","rt":4.4,"rv":78,"es":0,"et":"","eg":"","priority":83,"ev_signal":false,"pre_called":false},{"id":"ChIJu38wpWUslkcRgkeGJIKCDPs","n":"Garage of Sound","cat":"Fleet","seg":"Logistics","round":"R1","sc":91,"dk":0.7,"cy":"Worms","ad":"Kirschgartenweg 1, 67549 Worms, Germany","ph":"06241 9335765","wb":"http://garage-of-sound.de/","rt":4.9,"rv":133,"es":0,"et":"","eg":"","priority":82,"ev_signal":false,"pre_called":true},{"id":"ChIJ50OqgGQEo0cR75UrjBbXzSI","n":"Anja Martin","cat":"Fleet","seg":"Logistics","round":"R2","sc":87,"dk":0.5,"cy":"Bad Neustadt an der Saale-Brendlorenzen","ad":"Gartenstraße 36, 97616 Bad Neustadt an der Saale, Germa","ph":"09771 6889335","wb":"http://www.kosmetik-anjamartin.de/","rt":4.9,"rv":23,"es":0,"et":"","eg":"","priority":82,"ev_signal":false,"pre_called":false},{"id":"ChIJkUL85KIRvUcRJBtczbZgYLE","n":"AE Handels GmbH","cat":"Fleet","seg":"Logistics","round":"R2","sc":87,"dk":0.6,"cy":"Mühlheim am Main","ad":"Ernst-Abbe-Straße 7, 63165 Mühlheim am Main, Germany","ph":"06108 6194345","wb":"https://ariana-export.de/","rt":4.9,"rv":37,"es":0,"et":"","eg":"","priority":82,"ev_signal":false,"pre_called":false},{"id":"ChIJYZMaJvm9o0cRbcfoqk1znLg","n":"RWW tires Wagner GmbH","cat":"Fleet","seg":"Logistics","round":"R2","sc":86,"dk":0.5,"cy":"Schleusingen","ad":"Königstraße 8, 98553 Schleusingen, Germany","ph":"036841 47917","wb":"https://www.reifen-wagner-schleusingen.de/","rt":4.8,"rv":86,"es":0,"et":"","eg":"","priority":82,"ev_signal":false,"pre_called":false},{"id":"ChIJs5PKkk67vUcRQV2Law5Gvxg","n":"Apostel Umzüge","cat":"Logistics","seg":"Logistics","round":"R2","sc":84,"dk":0.7,"cy":"Eppstein","ad":"Dietrich-Bonhoeffer-Weg 6a, 65817 Eppstein, Germany","ph":"0175 9271581","wb":"https://apostel-umzüge.de/","rt":5.0,"rv":41,"es":0,"et":"","eg":"","priority":82,"ev_signal":false,"pre_called":false},{"id":"ChIJKVkiKkwbpEcR9JSe-eW9K7Q","n":"Der Entrümpler Thüringen - Andrea Schulz","cat":"Logistics","seg":"Logistics","round":"R2","sc":84,"dk":0.7,"cy":"Weimar","ad":"Otto-Schott-Straße 1, 99427 Weimar, Germany","ph":"03643 4685945","wb":"http://www.entruempler-thueringen.de/","rt":4.9,"rv":35,"es":0,"et":"","eg":"","priority":82,"ev_signal":false,"pre_called":false},{"id":"ChIJJeZrOM5HvUcRTHw_Yyf0ZCI","n":"Mobelgo","cat":"Logistics","seg":"Logistics","round":"R2","sc":84,"dk":0.8,"cy":"Aschaffenburg","ad":"Bernhardstraße 25, 63741 Aschaffenburg, Germany","ph":"015561 771488","wb":"https://hll-service.com/","rt":4.9,"rv":65,"es":0,"et":"","eg":"","priority":82,"ev_signal":false,"pre_called":false},{"id":"ChIJJewN1PCavUcR06ipWbUqnOc","n":"Kanka Umzüge und Entrümpelungen","cat":"Logistics","seg":"Logistics","round":"R2","sc":84,"dk":0.7,"cy":"Bodenheim","ad":"Runtrudstraße 14, 55299 Nackenheim, Germany","ph":"0175 4608633","wb":"http://www.kanka-umzuege.de/","rt":5.0,"rv":76,"es":0,"et":"","eg":"","priority":82,"ev_signal":false,"pre_called":false},{"id":"ChIJOX7JeQCWo0cRBFud9lDdYJ0","n":"Reifenservice Kolb","cat":"Fleet","seg":"Logistics","round":"R2","sc":84,"dk":0.4,"cy":"Schleusingen","ad":"Am Sättel 10, 98553 Schleusingen, Germany","ph":"036841 43809","wb":"http://www.reifenservice-kolb.de/","rt":3.8,"rv":20,"es":0,"et":"","eg":"","priority":82,"ev_signal":false,"pre_called":false},{"id":"ChIJ8UQpr2gRvUcRrXJ24eW7Nn4","n":"Bundschuh-Garcia Umzugsservice GmbH","cat":"Logistics","seg":"Logistics","round":"R2","sc":83,"dk":0.6,"cy":"Mühlheim am Main","ad":"Dieselstraße 10, 63165 Mühlheim am Main, Germany","ph":"06108 790387","wb":"https://bg-umzugsservice.de/","rt":4.6,"rv":43,"es":0,"et":"","eg":"","priority":82,"ev_signal":false,"pre_called":false},{"id":"ChIJ1SrIFbBBu0cRbDV68T-Vr58","n":"3D Druck - Smart Additive","cat":"Fleet","seg":"Logistics","round":"R2","sc":82,"dk":0.4,"cy":"Baunatal","ad":"Kieler Str. 31, 34225 Baunatal, Germany","ph":"0174 4863253","wb":"http://www.smart-add.com/","rt":5.0,"rv":9,"es":0,"et":"","eg":"","priority":82,"ev_signal":false,"pre_called":false},{"id":"ChIJlZw8sVIFo0cRNAwt9a6plNY","n":"Wolf Land-, Förder und Gartentechnik","cat":"Fleet","seg":"Logistics","round":"R2","sc":81,"dk":0.3,"cy":"Bad Neustadt an der Saale-Brendlorenzen","ad":"Hauptstraße 87/95, 97616 Bad Neustadt an der Saale, Ger","ph":"09771 62900","wb":"http://www.wolf-nes.de/","rt":4.7,"rv":16,"es":0,"et":"","eg":"","priority":82,"ev_signal":false,"pre_called":false},{"id":"ChIJC2M1z-RWn0cRGJ5FJOpsPQ4","n":"KT Umzüge Nürnberg","cat":"Logistics","seg":"Logistics","round":"R2","sc":79,"dk":0.5,"cy":"Nürnberg","ad":"Kreutzerstraße 49, 90439 Nürnberg, Germany","ph":"0911 24081000","wb":"https://www.kt-umzuege-transporte.de/","rt":4.9,"rv":14,"es":0,"et":"","eg":"","priority":82,"ev_signal":false,"pre_called":false},{"id":"ChIJVf1Ou1tmpEcRslRf4hd1HKs","n":"Hohberg GmbH","cat":"Logistics","seg":"Logistics","round":"R2","sc":79,"dk":0.5,"cy":"Herbsleben","ad":"Oberriedsweg 2, 99955 Herbsleben, Germany","ph":"036041 56222","wb":"https://www.hohberg-gmbh.de/","rt":5.0,"rv":6,"es":0,"et":"","eg":"","priority":82,"ev_signal":false,"pre_called":false},{"id":"ChIJM4msGBYtlkcR4jrSrLhxzWw","n":"Busse + Zerbe Deutschland GmbH NL Worms","cat":"Logistics","seg":"Logistics","round":"R2","sc":77,"dk":0.5,"cy":"Worms","ad":"Maria-Münster-Straße 12, 67547 Worms, Germany","ph":"06241 3951902","wb":"https://www.bplusz-group.de/worms-bussezerbe-deutschland/","rt":3.9,"rv":15,"es":0,"et":"","eg":"","priority":82,"ev_signal":false,"pre_called":false},{"id":"ChIJLbCPwLRXP0wRj_EZJALQWV4","n":"ETU Dienstleistungen","cat":"Logistics","seg":"Logistics","round":"R2","sc":72,"dk":0.2,"cy":"Bad Brückenau","ad":"Siebenbrücksgasse 11, 97769 Bad Brückenau, Germany","ph":"0176 45954150","wb":"","rt":5.0,"rv":5,"es":0,"et":"","eg":"","priority":82,"ev_signal":false,"pre_called":false},{"id":"ChIJWfBGJ4RpvUcR9BXyHxtl804","n":"RELAX Umzüge Darmstadt Dieburg, Transporte, Entrümpelun","cat":"Logistics","seg":"Logistics","round":"R2","sc":72,"dk":0.3,"cy":"Groß-Zimmern","ad":"Justus-Liebig-Straße 1, 64846 Groß-Zimmern, Germany","ph":"0160 92554422","wb":"","rt":5.0,"rv":16,"es":0,"et":"","eg":"","priority":82,"ev_signal":false,"pre_called":false},{"id":"ChIJmUI79uwapEcRd89Vq6swFmY","n":"ATU Weimar","cat":"Fleet","seg":"Logistics","round":"R1","sc":93,"dk":0.9,"cy":"Weimar","ad":"Rießnerstraße 25, 99427 Weimar, Germany","ph":"03643 420374","wb":"https://autowerkstatt.atu.de/thueringen/weimar/riessnerstr-25","rt":4.1,"rv":545,"es":0,"et":"","eg":"","priority":81,"ev_signal":false,"pre_called":true},{"id":"ChIJBUNaKewapEcRHDZZ4RRoloQ","n":"Reifen Feustel GmbH","cat":"Fleet","seg":"Logistics","round":"R1","sc":90,"dk":0.9,"cy":"Weimar","ad":"Rießnerstr. 10 a, 99427 Weimar, Germany","ph":"03643 4469664","wb":"https://www.werkstattservice-weimar.de/","rt":4.4,"rv":137,"es":0,"et":"","eg":"","priority":81,"ev_signal":false,"pre_called":true},{"id":"ChIJvy8nuc6XnkcRemo37rqiR1M","n":"A-Z Parts Germany GmbH","cat":"Fleet","seg":"Logistics","round":"R1","sc":90,"dk":0.8,"cy":"Augsburg","ad":"Steinerne Furt 60, 86167 Augsburg, Germany","ph":"0821 24413616","wb":"http://www.azparts.de/","rt":4.6,"rv":160,"es":0,"et":"","eg":"","priority":81,"ev_signal":false,"pre_called":true},{"id":"ChIJE12IeaROc0ERbBl332nt2h8","n":"NICHT Aral","cat":"Fleet","seg":"Logistics","round":"R1","sc":89,"dk":0.7,"cy":"Estenfeld","ad":"Würzburger Str. 1, 97230 Estenfeld, Germany","ph":"09305 218","wb":"http://www.tanke-estenfeld.de/","rt":4.3,"rv":252,"es":0,"et":"","eg":"","priority":81,"ev_signal":false,"pre_called":true},{"id":"ChIJSdpUvypAvUcR8PckmpMT2II","n":"Tuktuk Umzüge","cat":"Logistics","seg":"Logistics","round":"R1","sc":88,"dk":0.9,"cy":"Groß-Zimmern","ad":"Hörnertweg 16, 64846 Groß-Zimmern, Germany","ph":"0176 44734861","wb":"http://www.tuktuk-umzuege.de/","rt":4.9,"rv":159,"es":0,"et":"","eg":"","priority":81,"ev_signal":false,"pre_called":true},{"id":"ChIJCwV4H9FovUcRp8MSUVMiX_Q","n":"Mobile Makler","cat":"Fleet","seg":"Logistics","round":"R2","sc":86,"dk":0.6,"cy":"Groß-Zimmern","ad":"Waldstraße 35, 64846 Groß-Zimmern, Germany","ph":"06071 392272","wb":"http://mobilemakler.com/","rt":4.4,"rv":26,"es":0,"et":"","eg":"","priority":81,"ev_signal":false,"pre_called":false},{"id":"ChIJOxwcdlvEokcRBc0cBt7_Jkw","n":"Reifen Müller GmbH & Co. KG","cat":"Fleet","seg":"Logistics","round":"R1","sc":86,"dk":0.6,"cy":"Gemünden am Main","ad":"Schulstraße 1, 97737 Gemünden am Main, Germany","ph":"09351 3688","wb":"https://gemuenden.reifen-mueller.com/","rt":4.6,"rv":83,"es":0,"et":"","eg":"","priority":81,"ev_signal":false,"pre_called":true},{"id":"ChIJP-5P-Qf8pEcRndoRuDWIFqQ","n":"GZ Automobiltechnik Markus Georgiew","cat":"Fleet","seg":"Logistics","round":"R2","sc":86,"dk":0.7,"cy":"Bleicherode","ad":"Sondershäuser Str. 1, 99752 Bleicherode, Germany","ph":"036338 597400","wb":"http://stores.ebay.de/gzautomobiltechnik?_rdc=1","rt":4.7,"rv":39,"es":0,"et":"","eg":"","priority":81,"ev_signal":false,"pre_called":false},{"id":"ChIJ48jZ--4apEcRONY3tdQL-GU","n":"pitstop.de Weimar","cat":"Fleet","seg":"Logistics","round":"R2","sc":85,"dk":0.6,"cy":"Weimar","ad":"Buttelstedter Str. 10, 99427 Weimar, Germany","ph":"03643 497430","wb":"https://www.pitstop.de/","rt":4.3,"rv":64,"es":0,"et":"","eg":"","priority":81,"ev_signal":false,"pre_called":false},{"id":"ChIJNWqRemj1vEcR1p2UnWg7iNM","n":"Universal Transport Schmitz GmbH & Co. KG","cat":"Logistics","seg":"Logistics","round":"R2","sc":84,"dk":0.9,"cy":"Staufenberg","ad":"In d. Au 12, 35460 Staufenberg, Germany","ph":"06406 91280","wb":"http://www.universal-transport.com/","rt":4.8,"rv":47,"es":0,"et":"","eg":"","priority":81,"ev_signal":false,"pre_called":false},{"id":"ChIJW2clmgGao0cRmA5m1P3WkCY","n":"TVB Umzüge GmbH","cat":"Logistics","seg":"Logistics","round":"R2","sc":84,"dk":0.8,"cy":"Suhl","ad":"Würzburger Str. 3, 98529 Suhl, Germany","ph":"03681 3526120","wb":"https://www.tvb-umzuege.de/","rt":4.8,"rv":50,"es":0,"et":"","eg":"","priority":81,"ev_signal":false,"pre_called":false},{"id":"ChIJ4S_yrMC5pEcR6PQ8t7a1aOM","n":"Jost + Sohn Transport-GmbH","cat":"Logistics","seg":"Logistics","round":"R2","sc":83,"dk":0.8,"cy":"Eschwege","ad":"Kuhtrift 6, 37269 Eschwege, Germany","ph":"05651 92900","wb":"http://www.jostonline.com/","rt":4.5,"rv":29,"es":0,"et":"","eg":"","priority":81,"ev_signal":false,"pre_called":false},{"id":"ChIJd7cdRwBpvUcRQLO6qs5LBwM","n":"PRV Autoteile & Zubehör","cat":"Fleet","seg":"Logistics","round":"R2","sc":82,"dk":0.5,"cy":"Groß-Zimmern","ad":"Röntgenstraße 1, 64846 Groß-Zimmern, Germany","ph":"06071 4989014","wb":"https://www.reinhard-gruppe.de/impressum","rt":5.0,"rv":8,"es":0,"et":"","eg":"","priority":81,"ev_signal":false,"pre_called":false},{"id":"ChIJ7RQZi3xDo0cRicLaJkxbKWw","n":"Franz J. Möller Fuhrbetrieb GmbH&Co.KG","cat":"Logistics","seg":"Logistics","round":"R2","sc":79,"dk":0.6,"cy":"Geisa","ad":"Wiesenweg 1, 36419 Geisa, Germany","ph":"036967 70622","wb":"http://www.moeller-geisa.de/","rt":5.0,"rv":7,"es":0,"et":"","eg":"","priority":81,"ev_signal":false,"pre_called":false},{"id":"ChIJo2WUq8ctlkcR6F2eAl_LXNE","n":"Toulatou-Kalyvas-Transporte","cat":"Logistics","seg":"Logistics","round":"R2","sc":79,"dk":0.6,"cy":"Worms","ad":"Eduard-David-Straße 12, 67547 Worms, Germany","ph":"06241 2001144","wb":"https://www.toulatou-transporte.de/","rt":5.0,"rv":1,"es":0,"et":"","eg":"","priority":81,"ev_signal":false,"pre_called":false},{"id":"ChIJx8u1CwC-o0cRpQonReTmDLk","n":"Olaf Ambroz Olafs Autostudio","cat":"Fleet","seg":"Logistics","round":"R2","sc":74,"dk":0.1,"cy":"Schleusingen","ad":"Goethestraße 6, 98553 Schleusingen, Germany","ph":"01577 5808284","wb":"","rt":4.9,"rv":17,"es":0,"et":"","eg":"","priority":81,"ev_signal":false,"pre_called":false},{"id":"ChIJ64fswGsEo0cR0vQiH2-nsI4","n":"Wütschner Fahrzeugteile GmbH (ehm. Autoteile Reese GmbH","cat":"Fleet","seg":"Logistics","round":"R2","sc":90,"dk":0.9,"cy":"Bad Neustadt an der Saale-Brendlorenzen","ad":"Meininger Str. 55, 97616 Bad Neustadt an der Saale, Ger","ph":"09771 68250","wb":"https://www.wuetschner.com/","rt":4.7,"rv":117,"es":0,"et":"","eg":"","priority":80,"ev_signal":false,"pre_called":false},{"id":"ChIJDfSNwljRo0cRyuGfhnH73qM","n":"Autohaus Rödental 24","cat":"Fleet","seg":"Logistics","round":"R2","sc":86,"dk":0.7,"cy":"Rödental","ad":"Rosenau 25, 96472 Rödental, Germany","ph":"09563 30033","wb":"https://www.autoteam-plus.de/autohaus-roedental-24/","rt":4.6,"rv":62,"es":0,"et":"","eg":"","priority":80,"ev_signal":false,"pre_called":false},{"id":"ChIJdRtCdHzaokcRoWUy2bRESS0","n":"Reifen Wirthmann","cat":"Fleet","seg":"Logistics","round":"R2","sc":86,"dk":0.7,"cy":"Burgsinn","ad":"Schloßallee 1, 97775 Burgsinn, Germany","ph":"09356 93884","wb":"http://www.reifen-wirthmann.de/","rt":4.8,"rv":56,"es":0,"et":"","eg":"","priority":80,"ev_signal":false,"pre_called":false},{"id":"ChIJeYeHKTgXvUcRSg51P1qGVTA","n":"SIXT Autovermietung Hanau","cat":"Rental","seg":"Car Rental","round":"R1","sc":93,"dk":0.1,"cy":"Hanau","ad":"Dörnigheimer Str. 9-12, 63452 Hanau, Germany","ph":"06181 7044248","wb":"https://www.sixt.de/mietwagen/deutschland/hanau/hanau/?utm_source=goog","rt":4.0,"rv":741,"es":0,"et":"","eg":"","priority":76,"ev_signal":false,"pre_called":true},{"id":"ChIJQ3X1sQ1IvUcR__04rTePPzo","n":"Enterprise Autovermietung & Transporter Mieten - Aschaf","cat":"Rental","seg":"Car Rental","round":"R2","sc":93,"dk":0.6,"cy":"Aschaffenburg","ad":"Hanauer Str. 26, 63739 Aschaffenburg, Germany","ph":"06021 448830","wb":"https://www.enterprise.de/de/autovermietung-standorte/de/aschaffenburg","rt":4.1,"rv":634,"es":0,"et":"","eg":"","priority":72,"ev_signal":false,"pre_called":false},{"id":"ChIJk6G8te5Wn0cRXceY6eyaC_c","n":"Avis Autovermietung - Nürnberg West","cat":"Rental","seg":"Car Rental","round":"R1","sc":88,"dk":0.4,"cy":"Nürnberg","ad":"Tillypark 10, 90431 Nürnberg, Germany","ph":"0911 49696","wb":"https://www.avis.de/rund-um-avis/mietwagen-stationen/europa/deutschlan","rt":3.5,"rv":199,"es":0,"et":"","eg":"","priority":72,"ev_signal":false,"pre_called":true},{"id":"ChIJDZhiFI1HvUcR4y52Y8igqwo","n":"Europcar Aschaffenburg","cat":"Rental","seg":"Car Rental","round":"R1","sc":89,"dk":0.6,"cy":"Aschaffenburg","ad":"Hanauer Str. 78, 63739 Aschaffenburg, Germany","ph":"06021 443690","wb":"https://www.europcar.de/de-de/places/autovermietung-germany/aschaffenb","rt":4.2,"rv":340,"es":0,"et":"","eg":"","priority":70,"ev_signal":false,"pre_called":true},{"id":"ChIJEVDEYwAtlkcR-uMtCjisqHM","n":"Enterprise Autovermietung & Transporter Mieten - Worms","cat":"Rental","seg":"Car Rental","round":"R1","sc":85,"dk":0.5,"cy":"Worms","ad":"Horchheimer Str. 47A, 67547 Worms, Germany","ph":"06241 305820","wb":"https://www.enterprise.de/de/autovermietung-standorte/de/worms-g3in.ht","rt":4.0,"rv":29,"es":0,"et":"","eg":"","priority":70,"ev_signal":false,"pre_called":true},{"id":"ChIJnaTGQ0IFo0cR3WCd3KTdP1M","n":"Avis Autovermietung - Bad Neustadt","cat":"Rental","seg":"Car Rental","round":"R1","sc":64,"dk":0.2,"cy":"Bad Neustadt an der Saale","ad":"Partnerbetrieb Ah Vorndran, Saalestraße 12-18, 97616 Ba","ph":"09771 6363290","wb":"","rt":0,"rv":0,"es":0,"et":"","eg":"","priority":67,"ev_signal":false,"pre_called":true},{"id":"ChIJsWJAQ99Xn0cRXld69B_bb80","n":"Europcar Nürnberg Transporter-LKW-PKW","cat":"Rental","seg":"Car Rental","round":"R1","sc":86,"dk":1.0,"cy":"Nürnberg","ad":"Edisonstraße 23, 90431 Nürnberg, Germany","ph":"0911 60066910","wb":"https://www.europcar.de/de-de/places/autovermietung-germany/nuernberg/","rt":4.5,"rv":128,"es":0,"et":"","eg":"","priority":66,"ev_signal":false,"pre_called":true},{"id":"ChIJi0BNoVCXnkcRnNrq_AYu4tw","n":"SIXT Auto- und Transportervermietung Augsburg","cat":"Rental","seg":"Car Rental","round":"R1","sc":85,"dk":1.1,"cy":"Augsburg","ad":"Bürgermeister-Wegele-Straße 6, 86167 Augsburg, Germany","ph":"089 66060060","wb":"https://www.sixt.de/mietwagen/deutschland/augsburg/augsburg/?utm_sourc","rt":4.1,"rv":329,"es":0,"et":"","eg":"","priority":65,"ev_signal":false,"pre_called":true},{"id":"ChIJLXLg-dNVn0cRiyX8cmDbzVI","n":"Enterprise Autovermietung & Transporter Mieten - Nürnbe","cat":"Rental","seg":"Car Rental","round":"R2","sc":89,"dk":1.4,"cy":"Nürnberg","ad":"Witschelstraße 50, 90431 Nürnberg, Germany","ph":"0911 997020","wb":"https://www.enterprise.de/de/autovermietung-standorte/de/nurnberg-west","rt":4.0,"rv":555,"es":0,"et":"","eg":"","priority":63,"ev_signal":false,"pre_called":false},{"id":"ChIJpWfv6xMXvUcRhPGP5WChYmE","n":"Avis Autovermietung GmbH & Co. KG","cat":"Rental","seg":"Car Rental","round":"R1","sc":85,"dk":1.3,"cy":"Hanau","ad":"Breslauer Str. 7, 63452 Hanau, Germany","ph":"06181 15025","wb":"https://www.avis.de/rund-um-avis/mietwagen-stationen/europa/deutschlan","rt":4.1,"rv":139,"es":0,"et":"","eg":"","priority":62,"ev_signal":false,"pre_called":true},{"id":"ChIJt4XopMCXnkcRliwNvovD6J0","n":"Enterprise Autovermietung & Transporter Mieten - Augsbu","cat":"Rental","seg":"Car Rental","round":"R2","sc":85,"dk":1.3,"cy":"Augsburg","ad":"Aindlinger Str. 14, 86167 Augsburg, Germany","ph":"0821 448360","wb":"https://www.enterprise.de/de/autovermietung-standorte/de/augsburg-g3jp","rt":3.9,"rv":471,"es":0,"et":"","eg":"","priority":62,"ev_signal":false,"pre_called":false},{"id":"ChIJ0SAuCcYapEcRb3itxxepFzQ","n":"SIXT Autovermietung Weimar","cat":"Rental","seg":"Car Rental","round":"R1","sc":86,"dk":1.6,"cy":"Weimar","ad":"Schubertstraße 13a, 99423 Weimar, Germany","ph":"03643 804044","wb":"https://www.sixt.de/mietwagen/deutschland/weimar/weimar/?utm_source=go","rt":4.8,"rv":349,"es":0,"et":"","eg":"","priority":60,"ev_signal":false,"pre_called":true},{"id":"ChIJJSuARvj3okcRRt_LoHslYNE","n":"Enterprise Autovermietung & Transporter Mieten - Schwei","cat":"Rental","seg":"Car Rental","round":"R2","sc":85,"dk":1.6,"cy":"Schweinfurt","ad":"Niederwerrner Str. 103, 97421 Schweinfurt, Germany","ph":"09721 541390","wb":"https://www.enterprise.de/de/autovermietung-standorte/de/schweinfurt-g","rt":4.3,"rv":106,"es":0,"et":"","eg":"","priority":59,"ev_signal":false,"pre_called":false},{"id":"ChIJm26rtgH_nkcRKqQiIUiAhNc","n":"Enterprise Autovermietung & Transporter Mieten - Ingols","cat":"Rental","seg":"Car Rental","round":"R2","sc":85,"dk":1.6,"cy":"Ingolstadt","ad":"Manchinger Str. 72, 85053 Ingolstadt, Germany","ph":"0841 981290","wb":"https://www.enterprise.de/de/autovermietung-standorte/de/ingolstadt-g3","rt":4.1,"rv":325,"es":0,"et":"","eg":"","priority":59,"ev_signal":false,"pre_called":false},{"id":"ChIJ6yH0JAD3vEcRkmf21N1rEq8","n":"Enterprise Autovermietung & Transporter Mieten - Giesse","cat":"Rental","seg":"Car Rental","round":"R2","sc":89,"dk":1.9,"cy":"Gießen","ad":"Bänningerstraße 14, 35394 Gießen, Germany","ph":"0641 4955450","wb":"https://www.enterprise.de/de/autovermietung-standorte/de/giessen-g307.","rt":4.3,"rv":652,"es":0,"et":"","eg":"","priority":58,"ev_signal":false,"pre_called":false},{"id":"ChIJK_5oQc8apEcR0l5h4nOgWcI","n":"Avis Autovermietung - Weimar","cat":"Rental","seg":"Car Rental","round":"R1","sc":82,"dk":1.8,"cy":"Weimar","ad":"Erfurter Str. 68A, 99423 Weimar, Germany","ph":"03643 505800","wb":"https://www.avis.de/rund-um-avis/mietwagen-stationen/europa/deutschlan","rt":4.4,"rv":65,"es":0,"et":"","eg":"","priority":56,"ev_signal":false,"pre_called":true},{"id":"ChIJB_axQedHvUcROabv2gWbaWQ","n":"SIXT Autovermietung Aschaffenburg","cat":"Rental","seg":"Car Rental","round":"R1","sc":81,"dk":2.1,"cy":"Aschaffenburg","ad":"Südbahnhofstraße 18, 63739 Aschaffenburg, Germany","ph":"06021 335890","wb":"https://www.sixt.de/mietwagen/deutschland/aschaffenburg/aschaffenburg/","rt":4.2,"rv":247,"es":0,"et":"","eg":"","priority":54,"ev_signal":false,"pre_called":true},{"id":"ChIJXfukQ88apEcRe3RUivEE_co","n":"Budget Autovermietung - Weimar","cat":"Rental","seg":"Car Rental","round":"R1","sc":75,"dk":1.8,"cy":"Weimar","ad":"Erfurter Str. 68A, 99423 Weimar, Germany","ph":"03643 505800","wb":"https://www.budget.de/?map=GoogleMyBusiness-H4L","rt":3.5,"rv":2,"es":0,"et":"","eg":"","priority":54,"ev_signal":false,"pre_called":true},{"id":"ChIJ_Wow15c1mUcRiQA47KMdAG0","n":"Hertz Augsburg, Donaustraße 15","cat":"Rental","seg":"Car Rental","round":"R1","sc":80,"dk":2.1,"cy":"Augsburg","ad":"Donaustraße 15, 86165 Augsburg, Germany","ph":"0821 38366","wb":"https://www.hertz.de/rentacar/location/deutschland/augsburg/MUCW63?utm","rt":3.8,"rv":230,"es":0,"et":"","eg":"","priority":53,"ev_signal":false,"pre_called":true},{"id":"ChIJUQI_COWXnkcRnFGzePgIhDY","n":"Avis Autovermietung - Augsburg","cat":"Rental","seg":"Car Rental","round":"R1","sc":80,"dk":2.1,"cy":"Augsburg","ad":"Eisackstraße 18, 86165 Augsburg, Germany","ph":"0821 38241","wb":"https://www.avis.de/rund-um-avis/mietwagen-stationen/europa/deutschlan","rt":3.5,"rv":180,"es":0,"et":"","eg":"","priority":53,"ev_signal":false,"pre_called":true},{"id":"ChIJb48RRWQXvUcRlYxR1RgDLWY","n":"Hertz Car Rental - Hanau Roller HLE","cat":"Rental","seg":"Car Rental","round":"R1","sc":68,"dk":1.7,"cy":"Hanau","ad":"Kinzigbogen 10, 63452 Hanau, Germany","ph":"0800 6543001","wb":"https://www.hertz.com/rentacar/location/germany/hanau/FRAC04?utm_campa","rt":0,"rv":0,"es":0,"et":"","eg":"","priority":53,"ev_signal":false,"pre_called":true},{"id":"ChIJV7siYLwtlkcRVuZSimgqmmo","n":"Avis Autovermietung - Worms","cat":"Rental","seg":"Car Rental","round":"R2","sc":62,"dk":1.6,"cy":"Worms","ad":"Alzeyer Str. 44, 67549 Worms, Germany","ph":"06241 9726042","wb":"","rt":1.0,"rv":2,"es":0,"et":"","eg":"","priority":53,"ev_signal":false,"pre_called":false},{"id":"ChIJ0-QIPy0_u0cRXBK5Uq4JYv4","n":"SIXT Autovermietung Kassel","cat":"Rental","seg":"Car Rental","round":"R1","sc":81,"dk":2.3,"cy":"Kassel","ad":"Holländische Str. 207c, 34127 Kassel, Germany","ph":"0561 93703101","wb":"https://www.sixt.de/mietwagen/deutschland/kassel/kassel-nord/?utm_sour","rt":4.2,"rv":455,"es":0,"et":"","eg":"","priority":52,"ev_signal":false,"pre_called":true},{"id":"ChIJ_9zMa5c2o0cR5t5FG3I-Nkc","n":"Europcar Fulda","cat":"Rental","seg":"Car Rental","round":"R1","sc":81,"dk":2.3,"cy":"Fulda","ad":"Petersberger Str. 42, 36037 Fulda, Germany","ph":"0661 70106","wb":"https://www.europcar.de/de-de/places/autovermietung-germany/fulda/fuld","rt":4.0,"rv":276,"es":0,"et":"","eg":"","priority":52,"ev_signal":false,"pre_called":true},{"id":"ChIJ11T13NQ3o0cRCGcG51-dhjc","n":"Avis Autovermietung - Fulda","cat":"Rental","seg":"Car Rental","round":"R2","sc":70,"dk":1.9,"cy":"Fulda","ad":"Dalbergstraße 1, 36037 Fulda, Germany","ph":"0661 77421","wb":"","rt":5.0,"rv":1,"es":0,"et":"","eg":"","priority":52,"ev_signal":false,"pre_called":false},{"id":"ChIJv5_1odsbpEcRi0rcJbxwy7U","n":"Avis Autovermietung - Weimar","cat":"Rental","seg":"Car Rental","round":"R1","sc":60,"dk":1.8,"cy":"Weimar","ad":"Henßstraße 7, 99423 Weimar, Germany","ph":"03643 505800","wb":"","rt":0,"rv":0,"es":0,"et":"","eg":"","priority":50,"ev_signal":false,"pre_called":true},{"id":"ChIJJfaiMbqXnkcRP3xaCGIzzv8","n":"Europcar Augsburg Lechhausen","cat":"Rental","seg":"Car Rental","round":"R1","sc":76,"dk":2.4,"cy":"Augsburg","ad":"Zugspitzstraße 187, 86165 Augsburg, Germany","ph":"0821 794740","wb":"https://www.europcar.de/de-de/places/autovermietung-germany/augsburg/a","rt":3.7,"rv":68,"es":0,"et":"","eg":"","priority":49,"ev_signal":false,"pre_called":true},{"id":"ChIJDeSDOa73vEcRGE3r-E8IfUI","n":"Avis Autovermietung - Giessen","cat":"Rental","seg":"Car Rental","round":"R1","sc":71,"dk":2.2,"cy":"Gießen","ad":"Schiffenberger Weg 109, 35394 Gießen, Germany","ph":"0172 3709422","wb":"https://www.avis.de/rund-um-avis/mietwagen-stationen/europa/deutschlan","rt":3.6,"rv":16,"es":0,"et":"","eg":"","priority":49,"ev_signal":false,"pre_called":true},{"id":"ChIJB6J3PyAtlkcRWLbaKOhbg-w","n":"Budget Autovermietung - Worms","cat":"Rental","seg":"Car Rental","round":"R2","sc":50,"dk":1.6,"cy":"Worms","ad":"Alzeyer Str. 44, 67549 Worms, Germany","ph":"069 710445596","wb":"","rt":0,"rv":0,"es":0,"et":"","eg":"","priority":49,"ev_signal":false,"pre_called":false},{"id":"ChIJZdEQqhRXn0cRWBVxXVy1Q-U","n":"SIXT Autovermietung Nürnberg Südstadt","cat":"Rental","seg":"Car Rental","round":"R1","sc":89,"dk":2.9,"cy":"Nürnberg","ad":"Frankenstraße 100, 90461 Nürnberg, Germany","ph":"0911 98103541","wb":"https://www.sixt.de/mietwagen/deutschland/nuernberg/nuernberg-suedstad","rt":4.1,"rv":2035,"es":0,"et":"","eg":"","priority":48,"ev_signal":false,"pre_called":true},{"id":"ChIJV7rqMpb3okcRkpsPPitFxHA","n":"Europcar Schweinfurt","cat":"Rental","seg":"Car Rental","round":"R1","sc":81,"dk":2.6,"cy":"Schweinfurt","ad":"Georg-Schäfer-Straße 5, 97421 Schweinfurt, Germany","ph":"09721 18111","wb":"https://www.europcar.de/de-de/places/autovermietung-germany/schweinfur","rt":4.1,"rv":205,"es":0,"et":"","eg":"","priority":48,"ev_signal":false,"pre_called":true},{"id":"ChIJj0D_jI9YvEcR3Lb7bQgg0Jk","n":"Europcar Gießen","cat":"Rental","seg":"Car Rental","round":"R1","sc":80,"dk":2.6,"cy":"Gießen","ad":"Schiffenberger Weg 120, 35394 Gießen, Germany","ph":"0641 969870","wb":"https://www.europcar.de/de-de/places/autovermietung-germany/giessen/gi","rt":3.7,"rv":326,"es":0,"et":"","eg":"","priority":48,"ev_signal":false,"pre_called":true},{"id":"ChIJyaPpGgxIvUcRP4HbJoYr-Vw","n":"Hertz Autovermietung - Aschaffenburg - Wuerzburger Stra","cat":"Rental","seg":"Car Rental","round":"R2","sc":78,"dk":2.6,"cy":"Aschaffenburg","ad":"Würzburger Str. 102, 63743 Aschaffenburg, Germany","ph":"0214 497713","wb":"https://www.hertz.de/rentacar/location/deutschland/aschaffenburg/ZCBC6","rt":2.7,"rv":179,"es":0,"et":"","eg":"","priority":47,"ev_signal":false,"pre_called":false},{"id":"ChIJg9PWjE0bpEcReLas5wsCJAg","n":"Budget Autovermietung - Weimar","cat":"Rental","seg":"Car Rental","round":"R1","sc":50,"dk":1.8,"cy":"Weimar","ad":"Henßstraße 7, 99423 Weimar, Germany","ph":"03643 505800","wb":"","rt":0,"rv":0,"es":0,"et":"","eg":"","priority":47,"ev_signal":false,"pre_called":true},{"id":"ChIJq_bFUvQHmUcRQ6_sRnCPz0c","n":"Europcar Schwäbisch Gmünd","cat":"Rental","seg":"Car Rental","round":"R1","sc":82,"dk":2.9,"cy":"Schwäbisch Gmünd","ad":"Lorcher Str. 141/1, 73529 Schwäbisch Gmünd, Germany","ph":"040 520188000","wb":"https://www.europcar.de/de-de/places/autovermietung-germany/schwaebisc","rt":4.5,"rv":113,"es":0,"et":"","eg":"","priority":46,"ev_signal":false,"pre_called":true},{"id":"ChIJuUoST2EslkcR9Vn05Hqc10Q","n":"Kestenholz Autohaus GmbH (Mercedes-Benz)","cat":"Dealer","seg":"Car Dealership","round":"R1","sc":95,"dk":0.1,"cy":"Worms","ad":"Cornelius-Heyl-Straße 57, 67547 Worms, Germany","ph":"06241 8420","wb":"https://www.kestenholzgruppe.com/de/","rt":4.6,"rv":549,"es":0,"et":"","eg":"","priority":65,"ev_signal":false,"pre_called":true},{"id":"ChIJIfaSRRQRvUcRz7di_-cS4OU","n":"Avemo, Best, Volkswagen & Audi | Volkswagen Nfz., Seat ","cat":"Dealer","seg":"Car Dealership","round":"R2","sc":99,"dk":0.4,"cy":"Mühlheim am Main","ad":"Dieselstraße 61, 63165 Mühlheim am Main, Germany","ph":"06108 60020","wb":"https://autohaus-best.de/","rt":4.6,"rv":1750,"es":0,"et":"","eg":"","priority":64,"ev_signal":false,"pre_called":false},{"id":"ChIJXbEjLmEslkcRPiXX0tjVc_A","n":"Autohaus Christmann GmbH - CUPRA & SEAT Filiale","cat":"Dealer","seg":"Car Dealership","round":"R1","sc":92,"dk":0.2,"cy":"Worms","ad":"August-Horch-Straße 6, 67547 Worms, Germany","ph":"06241 9772900","wb":"https://autohaus-christmann.com/","rt":4.8,"rv":203,"es":0,"et":"","eg":"","priority":64,"ev_signal":false,"pre_called":true},{"id":"ChIJjeZkkMRXn0cRau2YGDADy5M","n":"BMW Nürnberg","cat":"Dealer","seg":"Car Dealership","round":"R1","sc":99,"dk":0.5,"cy":"Nürnberg","ad":"Niederlassung Nürnberg, Max-Ottenstein-Straße 1, 90441 ","ph":"0911 14510","wb":"https://www.bmw-nuernberg.de/?etcc_cmp=GoogleProfilBMW&etcc_med=Google","rt":4.5,"rv":2930,"es":0,"et":"","eg":"","priority":63,"ev_signal":false,"pre_called":true},{"id":"ChIJvWlxRbj_nkcReeLzZHr7mPo","n":"Autoarena Ingolstadt - eine Filiale der Autoarena Münch","cat":"Dealer","seg":"Car Dealership","round":"R2","sc":92,"dk":0.3,"cy":"Ingolstadt","ad":"Manchinger Str. 115A, 85053 Ingolstadt, Germany","ph":"0841 37079901","wb":"https://www.autoarena-ingolstadt.de/?utm_source=GMB","rt":4.8,"rv":199,"es":0,"et":"","eg":"","priority":62,"ev_signal":false,"pre_called":false},{"id":"ChIJdbeRrIsOoUcRknUgWvEKQTo","n":"Mercedes-Benz Verkauf und Service","cat":"Dealer","seg":"Car Dealership","round":"R1","sc":87,"dk":0.2,"cy":"Münchberg","ad":"Gewerbegebiet Nord an der A 9, August-Horch-Straße 2, 9","ph":"09251 99420","wb":"http://www.hahn-autohaus.de/","rt":4.6,"rv":65,"es":0,"et":"","eg":"","priority":62,"ev_signal":false,"pre_called":true},{"id":"ChIJv_aaJnT_nkcRVNdV4bjvwN0","n":"Auto Bierschneider - SEAT und CUPRA Vertragspartner, VW","cat":"Dealer","seg":"Car Dealership","round":"R2","sc":99,"dk":0.6,"cy":"Ingolstadt","ad":"Schütterlettenweg 1, 85053 Ingolstadt, Germany","ph":"0841 966880","wb":"https://www.bierschneider.de/standorte/ingolstadt/","rt":4.4,"rv":1670,"es":0,"et":"","eg":"","priority":61,"ev_signal":false,"pre_called":false},{"id":"ChIJB433yP5YvEcRy_UMrWhwWTg","n":"VW - Autohaus Brass Gießen - Ihr Autohaus für Volkswage","cat":"Dealer","seg":"Car Dealership","round":"R2","sc":95,"dk":0.6,"cy":"Gießen","ad":"Frankfurter Str. 171, 35392 Gießen, Germany","ph":"0641 92300","wb":"https://www.brass-gruppe.de/","rt":4.7,"rv":645,"es":0,"et":"","eg":"","priority":61,"ev_signal":false,"pre_called":false},{"id":"ChIJVVUVTYoOoUcRKMVdYmO8qG8","n":"Auto Müller GmbH & Co. KG - Mercedes Benz","cat":"Dealer","seg":"Car Dealership","round":"R2","sc":82,"dk":0.2,"cy":"Münchberg","ad":"August-Horch-Straße 2, 95213 Münchberg, Germany","ph":"09281 85010","wb":"https://www.mercedes-benz-auto-mueller.de/de/desktop/home.html","rt":4.3,"rv":7,"es":0,"et":"","eg":"","priority":61,"ev_signal":false,"pre_called":false},{"id":"ChIJUXaaO-dWn0cRkmio6JSlLmw","n":"Audi Zentrum Nürnberg | Feser-Graf","cat":"Dealer","seg":"Car Dealership","round":"R1","sc":95,"dk":0.6,"cy":"Nürnberg","ad":"Nopitschstraße 3, 90441 Nürnberg, Germany","ph":"0911 42360","wb":"https://www.feser-graf.de/unternehmen/standorte/nuernberg/audi","rt":4.7,"rv":842,"es":0,"et":"","eg":"","priority":60,"ev_signal":false,"pre_called":true},{"id":"ChIJx7Uwxo1HvUcRzhxaOBfvfIM","n":"Seat/Cupra - Autohaus Brass Aschaffenburg - Ihr Autohau","cat":"Dealer","seg":"Car Dealership","round":"R2","sc":95,"dk":0.7,"cy":"Aschaffenburg","ad":"Hanauer Str. 90 - 92, 63741 Aschaffenburg, Germany","ph":"06021 30360","wb":"https://www.brass-gruppe.de/","rt":4.4,"rv":501,"es":0,"et":"","eg":"","priority":60,"ev_signal":false,"pre_called":false},{"id":"ChIJfaoiXtaXnkcRc96GEOFP-XU","n":"Opel Augsburger Auto-Center Albert Sigg","cat":"Dealer","seg":"Car Dealership","round":"R1","sc":95,"dk":0.7,"cy":"Augsburg","ad":"Robert-Bosch-Straße 5, 86167 Augsburg, Germany","ph":"0821 74790","wb":"https://www.sigg-automobile.de/","rt":4.7,"rv":758,"es":0,"et":"","eg":"","priority":59,"ev_signal":false,"pre_called":true},{"id":"ChIJYR7LfAGao0cRoHq625-50NY","n":"Ehrhardt AG Škoda Suhl","cat":"Dealer","seg":"Car Dealership","round":"R1","sc":92,"dk":0.6,"cy":"Suhl","ad":"Auenstraße 3, 98529 Suhl, Germany","ph":"03681 45522220","wb":"https://www.ah-ehrhardt.de/marke/skoda/","rt":4.8,"rv":171,"es":0,"et":"","eg":"","priority":59,"ev_signal":false,"pre_called":true},{"id":"ChIJldHnqnb_nkcRRx2l1RWFOU4","n":"Porsche Center Ingolstadt","cat":"Dealer","seg":"Car Dealership","round":"R1","sc":91,"dk":0.6,"cy":"Ingolstadt","ad":"Manchinger Str. 106, 85053 Ingolstadt, Germany","ph":"0841 9936890","wb":"http://www.porsche-ingolstadt.de/","rt":4.5,"rv":214,"es":0,"et":"","eg":"","priority":59,"ev_signal":false,"pre_called":true},{"id":"ChIJYR7LfAGao0cROdLYzPt4570","n":"Ehrhardt AG Audi Suhl","cat":"Dealer","seg":"Car Dealership","round":"R1","sc":91,"dk":0.7,"cy":"Suhl","ad":"Auenstraße 3-5, 98529 Suhl, Germany","ph":"03681 45522230","wb":"https://www.ah-ehrhardt.de/marke/audi/","rt":4.7,"rv":253,"es":0,"et":"","eg":"","priority":59,"ev_signal":false,"pre_called":true},{"id":"ChIJpUtF0l8RvUcR1G3APiMYvLE","n":"Avemo, Best, Škoda Gebrauchtwagen | Autohaus Mühlheim a","cat":"Dealer","seg":"Car Dealership","round":"R2","sc":88,"dk":0.5,"cy":"Mühlheim am Main","ad":"Dieselstraße 63, 63165 Mühlheim am Main, Germany","ph":"06108 60020","wb":"https://autohaus-best.de/","rt":4.8,"rv":68,"es":0,"et":"","eg":"","priority":59,"ev_signal":false,"pre_called":false},{"id":"ChIJMz9BHkURvUcRXtC5Fq3d6Ow","n":"Avemo, Best, Audi Gebrauchtwagen | Autohaus Mühlheim am","cat":"Dealer","seg":"Car Dealership","round":"R2","sc":88,"dk":0.7,"cy":"Mühlheim am Main","ad":"Spessartstraße 6, 63165 Mühlheim am Main, Germany","ph":"06108 60020","wb":"https://www.autohaus-best.de/fahrzeugsuche/aktionsangebote/audi-meine-","rt":4.8,"rv":98,"es":0,"et":"","eg":"","priority":58,"ev_signal":false,"pre_called":false},{"id":"ChIJYR7LfAGao0cRuP2QaUxHvcM","n":"Ehrhardt AG Volkswagen Suhl","cat":"Dealer","seg":"Car Dealership","round":"R1","sc":87,"dk":0.6,"cy":"Suhl","ad":"Auenstraße 3, 98529 Suhl, Germany","ph":"03681 45522210","wb":"https://www.ah-ehrhardt.de/marke/vw/","rt":4.7,"rv":76,"es":0,"et":"","eg":"","priority":58,"ev_signal":false,"pre_called":true},{"id":"ChIJzyeR9lGOokcR9n408J3LWho","n":"Porsche Centre Würzburg","cat":"Dealer","seg":"Car Dealership","round":"R1","sc":91,"dk":0.8,"cy":"Estenfeld","ad":"Porschestraße 2, 97230 Estenfeld, Germany","ph":"0931 2099911","wb":"http://www.porsche-wuerzburg.de/","rt":4.7,"rv":282,"es":0,"et":"","eg":"","priority":57,"ev_signal":false,"pre_called":true},{"id":"ChIJpyGRzsG5pEcRrR1bj4nKlB4","n":"Renault Eschwege Enders Automobile + Service GmbH & Co.","cat":"Dealer","seg":"Car Dealership","round":"R2","sc":91,"dk":1.0,"cy":"Eschwege","ad":"Westring 30, 37269 Eschwege, Germany","ph":"05651 92150","wb":"https://www.enders-automobile.de/renault-eschwege","rt":4.7,"rv":196,"es":0,"et":"","eg":"","priority":56,"ev_signal":false,"pre_called":false},{"id":"ChIJe9vl7uwapEcRTv0N0yBH57o","n":"Renault - Weimar - Autohaus Reiche","cat":"Dealer","seg":"Car Dealership","round":"R1","sc":91,"dk":1.0,"cy":"Weimar","ad":"Rießnerstraße 33, 99427 Weimar, Germany","ph":"03643 74710","wb":"https://www.renault-weimar.de/","rt":4.7,"rv":105,"es":0,"et":"","eg":"","priority":55,"ev_signal":false,"pre_called":true},{"id":"ChIJ5a6D-YTaokcResLy0BPAehY","n":"Auto-Keßler - Ford","cat":"Dealer","seg":"Car Dealership","round":"R2","sc":79,"dk":0.7,"cy":"Burgsinn","ad":"Rienecker Str. 13, 97775 Burgsinn, Germany","ph":"09356 99120","wb":"https://www.ford-kessler-burgsinn.de/","rt":3.0,"rv":2,"es":0,"et":"","eg":"","priority":55,"ev_signal":false,"pre_called":false},{"id":"ChIJP6C62sG5pEcRUu4GWzus-QE","n":"BMW Krah & Enders Eschwege (Autohaus Fulda Krah & Ender","cat":"Dealer","seg":"Car Dealership","round":"R2","sc":88,"dk":1.0,"cy":"Eschwege","ad":"Westring 32, 37269 Eschwege, Germany","ph":"05651 92090","wb":"https://www.autohaus-krah-enders.de/","rt":4.8,"rv":163,"es":0,"et":"","eg":"","priority":54,"ev_signal":false,"pre_called":false},{"id":"ChIJZbkFO2sXvUcRUJ9TuNrraAY","n":"Mercedes-Benz AG, vertreten durch Anota GmbH Hanau","cat":"Dealer","seg":"Car Dealership","round":"R1","sc":90,"dk":1.2,"cy":"Hanau","ad":"Moselstraße 59, 63452 Hanau, Germany","ph":"06181 18600","wb":"https://www.mercedes-benz-frankfurt.de/?csref=mc-sem_cn-google_ci-ggl-","rt":3.9,"rv":553,"es":0,"et":"","eg":"","priority":53,"ev_signal":false,"pre_called":true},{"id":"ChIJqyttIhMXvUcR6dER_HRBTJY","n":"Audi Center Hanau","cat":"Dealer","seg":"Car Dealership","round":"R1","sc":91,"dk":1.4,"cy":"Hanau","ad":"Luise-Kiesselbach-Straße 17, 63452 Hanau, Germany","ph":"06181 49080","wb":"https://autohaus-best.de/","rt":4.5,"rv":868,"es":0,"et":"","eg":"","priority":51,"ev_signal":false,"pre_called":true},{"id":"ChIJ81JXWWsXvUcRRKgFYZmlUIE","n":"Auto Amthauer GmbH Volvo Vertragshändler","cat":"Dealer","seg":"Car Dealership","round":"R1","sc":87,"dk":1.3,"cy":"Hanau","ad":"Moselstraße 64, 63452 Hanau, Germany","ph":"06181 91050","wb":"http://www.auto-amthauer.de/","rt":4.7,"rv":226,"es":0,"et":"","eg":"","priority":51,"ev_signal":false,"pre_called":true},{"id":"ChIJP6C62sG5pEcR5bJ_Dft70gk","n":"Autohaus Fulda Krah & Enders GmbH - BMW","cat":"Dealer","seg":"Car Dealership","round":"R2","sc":77,"dk":1.0,"cy":"Eschwege","ad":"Westring 32, 37269 Eschwege, Germany","ph":"05651 92090","wb":"http://www.krah-enders.bmw/","rt":3.9,"rv":7,"es":0,"et":"","eg":"","priority":51,"ev_signal":false,"pre_called":false},{"id":"ChIJGT1_a1XimEcRKG7OZkyvbhs","n":"Koch-BAG-Auto GmbH - Volkswagen / Audi / Škoda / SEAT /","cat":"Dealer","seg":"Car Dealership","round":"R2","sc":92,"dk":1.6,"cy":"Ellwangen (Jagst)","ad":"In d. Au 4, 73479 Ellwangen (Jagst), Germany","ph":"07961 90300","wb":"https://koch-autogruppe.de/brand/vw/","rt":4.9,"rv":530,"es":0,"et":"","eg":"","priority":50,"ev_signal":false,"pre_called":false},{"id":"ChIJryXxPsFHvUcRvibg5PjA0fs","n":"Renault Aschaffenburg Autohaus Ehrlich GmbH","cat":"Dealer","seg":"Car Dealership","round":"R1","sc":95,"dk":1.7,"cy":"Aschaffenburg","ad":"Magnolienweg 38-40, 63741 Aschaffenburg, Germany","ph":"06021 458040","wb":"https://www.enders-automobile.de/renault-aschaffenburg","rt":4.7,"rv":1046,"es":0,"et":"","eg":"","priority":49,"ev_signal":false,"pre_called":true},{"id":"ChIJ1Q0MRxFXn0cRH9In4DRmciA","n":"Volkswagen Nürnberg | Feser-Graf","cat":"Dealer","seg":"Car Dealership","round":"R1","sc":87,"dk":1.5,"cy":"Nürnberg","ad":"Nopitschstraße 93, 90441 Nürnberg, Germany","ph":"0911 42360","wb":"https://www.feser-graf.de/unternehmen/standorte/nuernberg/volkswagen","rt":4.7,"rv":478,"es":0,"et":"","eg":"","priority":49,"ev_signal":false,"pre_called":true},{"id":"ChIJnTjIXAD_nkcRaHgp_p8YPXY","n":"Auto Bierschneider, Volkswagen Zentrum Ingolstadt","cat":"Dealer","seg":"Car Dealership","round":"R1","sc":87,"dk":1.5,"cy":"Ingolstadt","ad":"Manchinger Str. 80, 85053 Ingolstadt, Germany","ph":"0841 9025290","wb":"https://www.bierschneider.de/standorte/ingolstadt/volkswagen-zentrum-i","rt":4.5,"rv":142,"es":0,"et":"","eg":"","priority":49,"ev_signal":false,"pre_called":true},{"id":"ChIJ79YWARsbpEcRR1PCIRmeio0","n":"BMW Langenhan Weimar","cat":"Dealer","seg":"Car Dealership","round":"R1","sc":83,"dk":1.4,"cy":"Weimar","ad":"Ettersburger Str. 23, 99427 Weimar, Germany","ph":"03643 46440","wb":"https://www.langenhan-gruppe.de/","rt":4.4,"rv":97,"es":0,"et":"","eg":"","priority":49,"ev_signal":false,"pre_called":true},{"id":"ChIJR61ZQeuXnkcRbEYUvnQCqcI","n":"Automobilforum Sigg und Still GmbH - Ford","cat":"Dealer","seg":"Car Dealership","round":"R1","sc":92,"dk":1.8,"cy":"Augsburg","ad":"Donaustraße 5c, 86165 Augsburg, Germany","ph":"0821 7908690","wb":"https://www.ford-sigg.de/?utm_source=GMB","rt":4.9,"rv":788,"es":0,"et":"","eg":"","priority":47,"ev_signal":false,"pre_called":true},{"id":"ChIJ04IWhnIXvUcR3H5zIqwcII8","n":"Volkswagen Automobile Frankfurt GmbH","cat":"Dealer","seg":"Car Dealership","round":"R1","sc":91,"dk":1.9,"cy":"Hanau","ad":"Donaustraße 32, 63452 Hanau, Germany","ph":"06181 90095000","wb":"https://www.volkswagen-frankfurt.de/","rt":4.7,"rv":679,"es":0,"et":"","eg":"","priority":47,"ev_signal":false,"pre_called":true},{"id":"ChIJu2P35D2loUcR5_fLvhfaOns","n":"Renault 25 IG","cat":"Dealer","seg":"Car Dealership","round":"R2","sc":69,"dk":1.1,"cy":"Weidenberg","ad":"An d. Steinach 12, 95466 Weidenberg, Germany","ph":"09278 313356","wb":"http://www.oldtimer-betriebsanleitung.de/","rt":0,"rv":0,"es":0,"et":"","eg":"","priority":47,"ev_signal":false,"pre_called":false},{"id":"ChIJF-FwRbkapEcRuSOT9VrDZKc","n":"Volkswagen, ŠKODA, Audi Weimar Glinicke","cat":"Dealer","seg":"Car Dealership","round":"R1","sc":92,"dk":1.9,"cy":"Weimar","ad":"Erfurter Str. 76, 99423 Weimar, Germany","ph":"03643 208100","wb":"https://www.glinicke.de/autohaus/weimar/","rt":4.9,"rv":963,"es":0,"et":"","eg":"","priority":46,"ev_signal":false,"pre_called":true},{"id":"ChIJGSiQDOuXnkcRchBd1KOaT_E","n":"Autocenter Haas GmbH (Nissan-Händler)","cat":"Dealer","seg":"Car Dealership","round":"R1","sc":88,"dk":1.8,"cy":"Augsburg","ad":"Donaustraße 5a, 86165 Augsburg, Germany","ph":"0821 4483880","wb":"https://www.autocenter-haas.de/","rt":4.8,"rv":197,"es":0,"et":"","eg":"","priority":46,"ev_signal":false,"pre_called":true},{"id":"ChIJq6r6eSEno0cRHlm7dS5eTu8","n":"Karriere bei Böckler Automobile | Mercedes Benz","cat":"Dealer","seg":"Car Dealership","round":"R2","sc":69,"dk":1.3,"cy":"Bad Brückenau","ad":"Hammelburger Str. 7, 97769 Bad Brückenau, Germany","ph":"09736 75750","wb":"https://www.jobs-mit-stern.de/startseite-festanstellung/kontakt-jobs/","rt":0,"rv":0,"es":0,"et":"","eg":"","priority":46,"ev_signal":false,"pre_called":false},{"id":"ChIJXwhHXN8QvUcR2GwENu2qid0","n":"Krah + Enders GmbH & Co. KG - BMW und MINI Autohaus","cat":"Dealer","seg":"Car Dealership","round":"R1","sc":91,"dk":2.0,"cy":"Mühlheim am Main","ad":"Kesselstädter Str. 49, 63477 Maintal, Germany","ph":"06181 409870","wb":"https://www.autohaus-krah-enders.de/","rt":4.3,"rv":577,"es":0,"et":"","eg":"","priority":45,"ev_signal":false,"pre_called":true},{"id":"ChIJVVUVI_w3vUcRPtE_sQqaPPs","n":"Robert Kunzmann GmbH & Co. KG- Mercedes Benz service","cat":"Dealer","seg":"Car Dealership","round":"R1","sc":83,"dk":1.8,"cy":"Aschaffenburg","ad":"Auhofstraße 29, 63741 Aschaffenburg, Germany","ph":"06021 36111100","wb":"https://www.mercedes-benz.de/passengercars/mercedes-benz-cars/dealer-l","rt":4.6,"rv":54,"es":0,"et":"","eg":"","priority":45,"ev_signal":false,"pre_called":true},{"id":"ChIJubhZlXsPoUcRghgiEURwEzw","n":"AutoForum Münchberg GmbH - Ford","cat":"Dealer","seg":"Car Dealership","round":"R2","sc":82,"dk":1.7,"cy":"Münchberg","ad":"Bayreuther Str. 50, 95213 Münchberg, Germany","ph":"09251 43030","wb":"http://www.autoforum-muenchberg.de/","rt":4.1,"rv":60,"es":0,"et":"","eg":"","priority":45,"ev_signal":false,"pre_called":false},{"id":"ChIJ5YkvRfK5pEcRP8GiPWGbdZM","n":"Škoda Autohaus Glinicke","cat":"Dealer","seg":"Car Dealership","round":"R1","sc":87,"dk":2.0,"cy":"Eschwege","ad":"Hessenring 2, 37269 Eschwege, Germany","ph":"05651 800990","wb":"https://www.glinicke.de/autohaus/eschwege/skoda/","rt":4.6,"rv":228,"es":0,"et":"","eg":"","priority":44,"ev_signal":false,"pre_called":true},{"id":"ChIJS--4yBKomUcRoUQhC3qjH7A","n":"Škoda Autohaus Sorg GmbH","cat":"Dealer","seg":"Car Dealership","round":"R1","sc":87,"dk":2.1,"cy":"Schwäbisch Gmünd","ad":"Lorcher Str. 38, 73525 Schwäbisch Gmünd, Germany","ph":"07171 9098280","wb":"https://www.autohaussorg.de/","rt":4.6,"rv":503,"es":0,"et":"","eg":"","priority":43,"ev_signal":false,"pre_called":true},{"id":"ChIJg2JEV5o4u0cRfRJskDdfniY","n":"Peugeot Kassel Glinicke","cat":"Dealer","seg":"Car Dealership","round":"R1","sc":84,"dk":2.1,"cy":"Lohfelden","ad":"Leipziger Str. 291b, 34123 Kassel, Germany","ph":"0561 951230","wb":"https://haendler.peugeot.de/glinicke-automobiles-kassel/","rt":4.8,"rv":368,"es":0,"et":"","eg":"","priority":42,"ev_signal":false,"pre_called":true},{"id":"ChIJVVWldPO5pEcRV8UIadlgnXk","n":"Wilhelm Schäfer Kraftfahrzeugreparatur GmbH Mercedes Be","cat":"Dealer","seg":"Car Dealership","round":"R2","sc":83,"dk":2.1,"cy":"Eschwege","ad":"Hessenring 3, 37269 Eschwege, Germany","ph":"05651 335420","wb":"https://www.schaefer.eschwege.mercedes-benz.de/de/desktop/home.html","rt":4.6,"rv":107,"es":0,"et":"","eg":"","priority":42,"ev_signal":false,"pre_called":false},{"id":"ChIJLRhyBwxHu0cR--Q1rohaD5E","n":"Mercedes-Benz dealership Kassel - NFZ","cat":"Dealer","seg":"Car Dealership","round":"R1","sc":87,"dk":2.3,"cy":"Lohfelden","ad":"Matthäus-Merian-Straße 7, 34253 Lohfelden, Germany","ph":"0561 585910","wb":"https://www.mercedes-benz-trucks-kassel.de/de_DE/buy/dealer-locator/me","rt":4.4,"rv":626,"es":0,"et":"","eg":"","priority":41,"ev_signal":false,"pre_called":true},{"id":"ChIJZ1ThgfG5pEcRqKzfqPBAOY8","n":"Peugeot Autohaus Rabe","cat":"Dealer","seg":"Car Dealership","round":"R1","sc":83,"dk":2.2,"cy":"Eschwege","ad":"Bebraer Str. 6, 37269 Eschwege, Germany","ph":"05651 92050","wb":"http://www.autorabe.de/","rt":4.5,"rv":254,"es":0,"et":"","eg":"","priority":41,"ev_signal":false,"pre_called":true},{"id":"ChIJXTkWKghIvUcRzHgcBZakfTI","n":"Opel - Autohaus Brass Aschaffenburg - Ihr Autohaus für ","cat":"Dealer","seg":"Car Dealership","round":"R2","sc":78,"dk":2.0,"cy":"Aschaffenburg","ad":"Würzburger Str. 1, 63739 Aschaffenburg, Germany","ph":"06021 3870","wb":"https://www.brass-gruppe.de/","rt":3.9,"rv":49,"es":0,"et":"","eg":"","priority":41,"ev_signal":false,"pre_called":false},{"id":"ChIJ_____3s4vUcR2C50Jn0T840","n":"Audi Center Aschaffenburg","cat":"Dealer","seg":"Car Dealership","round":"R1","sc":88,"dk":2.4,"cy":"Aschaffenburg","ad":"Schönbornstraße 52, 63741 Aschaffenburg, Germany","ph":"06021 4590640","wb":"https://www.scherer-gruppe.de/standorte/aschaffenburg/audi-zentrum","rt":4.9,"rv":545,"es":0,"et":"","eg":"","priority":40,"ev_signal":false,"pre_called":true},{"id":"ChIJA5_QlLoapEcRxsPxVfr52NE","n":"Autohaus Schinner e.K. Opel, Citroën, Subaru, Chevrolet","cat":"Dealer","seg":"Car Dealership","round":"R1","sc":87,"dk":2.4,"cy":"Weimar","ad":"Erfurter Str. 55/57, 99427 Weimar, Germany","ph":"03643 24620","wb":"https://www.autohaus-schinner.de/","rt":4.5,"rv":578,"es":0,"et":"","eg":"","priority":40,"ev_signal":false,"pre_called":true}];
+
+const SCRIPTS={
+  Taxi:{
+    o:'Guten Tag, mein Name ist <strong>[NAME]</strong> von Corymba. Wir betreiben Elektro-Schnellladestationen &mdash; eine davon steht in <strong>[CITY]</strong>, nur <em>[DIST]</em> von Ihnen entfernt.',
+    p:'Wir bieten Taxiunternehmen mit Elektrofahrzeugen einen <strong>Nachttarif von 49&nbsp;Cent/kWh</strong> &mdash; g&uuml;nstiger als der Standardtarif und ideal f&uuml;r Fahrzeuge, die &uuml;ber Nacht laden. F&uuml;r regelm&auml;&szlig;ige Nutzer verhandeln wir individuelle Konditionen.',
+    a:'Darf ich Ihnen die Details kurz per E-Mail schicken? <strong>Wie lautet Ihre E-Mail-Adresse?</strong>',
+    t:'Falls noch keine E-Fahrzeuge: Fragen Sie, ob eine Umstellung geplant ist. Viele Taxibetriebe m&uuml;ssen in St&auml;dten bis 2026 elektrifizieren.'
+  },
+  Logistics:{
+    o:'Guten Tag, mein Name ist <strong>[NAME]</strong> von Corymba. Wir betreiben Elektro-Ladeinfrastruktur &mdash; eine Station steht in <strong>[CITY]</strong>, nur <em>[DIST]</em> von Ihnen entfernt.',
+    p:'F&uuml;r Lieferflotten, die t&auml;glich zur&uuml;ckkehren, ist unser <strong>Nachttarif von 49&nbsp;Cent/kWh</strong> ideal: g&uuml;nstig, planbar, direkt nebenan. F&uuml;r regelm&auml;&szlig;ige Nutzer bieten wir individuelle Konditionen.',
+    a:'Ich schicke Ihnen kurz eine &Uuml;bersicht per Mail. <strong>An welche E-Mail-Adresse kann ich das senden?</strong>',
+    t:'Fragen Sie nach Flottengr&ouml;&szlig;e und ob bereits E-Fahrzeuge eingesetzt werden. Bei Nein: Zeitplan der Elektrifizierung erfragen.'
+  },
+  'Car Dealership':{
+    o:'Guten Tag, mein Name ist <strong>[NAME]</strong> von Corymba. Wir betreiben Schnellladestationen f&uuml;r Elektrofahrzeuge &mdash; eine davon steht in <strong>[CITY]</strong>, <em>[DIST]</em> von Ihrem Standort.',
+    p:'F&uuml;r Autoha&uuml;ser mit E-Fahrzeugen im Bestand bieten wir einen <strong>Nachttarif von 49&nbsp;Cent/kWh</strong> &mdash; ideal f&uuml;r Vorf&uuml;hrwagen und Loaner. Zus&auml;tzlich k&ouml;nnen Ihre EV-K&auml;ufer auf unsere Infrastruktur hingewiesen werden.',
+    a:'Darf ich Ihnen die Details per E-Mail zukommen lassen? <strong>Wie lautet Ihre E-Mail-Adresse?</strong>',
+    t:'Zielkontakt: Flottenmanager oder Serviceleiter, nicht der Verkauf. Bei gro&szlig;en H&auml;ndlern direkt nach dem Fuhrparkverantwortlichen fragen.'
+  },
+  'Car Rental':{
+    o:'Guten Tag, mein Name ist <strong>[NAME]</strong> von Corymba. Wir betreiben Elektro-Schnellladestationen &mdash; eine befindet sich in <strong>[CITY]</strong>, nur <em>[DIST]</em> von Ihrer Filiale.',
+    p:'Da Mietwagenfirmen ihre E-Fahrzeuge zwischen Vermietungen regelm&auml;&szlig;ig laden m&uuml;ssen, ist unser <strong>Nachttarif von 49&nbsp;Cent/kWh</strong> ideal: g&uuml;nstig, planbar, direkt nebenan. F&uuml;r Stammkunden verhandeln wir individuelle Konditionen.',
+    a:'Ich schicke Ihnen kurz unsere Konditionen per Mail. <strong>An welche Adresse soll ich das senden?</strong>',
+    t:'Zielkontakt: Filialleiter oder Fuhrparkverantwortlicher. Fragen Sie nach der Anzahl der E-Fahrzeuge in der Flotte.'
+  }
+};
+
+// ── State ──
+let me=null, crm={}, filtered=[], selId=null, sortCol='sc', sortAsc=false, showMine=false, showEmail=false;
+let selected=new Set();
+let sbUrl='', sbKey='', useSupabase=false, realtimeSub=null;
+const SKEY='corymba-crm-v5', CFG='corymba-cfg-v2';
+
+// ── Supabase helpers ──
+function sb(path, opts){
+  const isNew = sbKey.startsWith('sb_publishable_') || sbKey.startsWith('sb_secret_');
+  const headers = isNew
+    ? {'apikey':sbKey,'Authorization':'Bearer '+sbKey,'Content-Type':'application/json','Prefer':'return=minimal'}
+    : {'apikey':sbKey,'Authorization':'Bearer '+sbKey,'Content-Type':'application/json','Prefer':'return=minimal'};
+  const baseUrl = sbUrl.replace(/\/rest\/v1\/?$/,'');
+  return fetch(baseUrl+'/rest/v1/'+path, Object.assign({headers}, opts));
+}
+
+async function sbLoad(){
+  try {
+    sbUrl=sbUrl.replace(/\/rest\/v1\/?$/,'');
+    const r = await sb('crm_state?select=lead_id,data');
+    if(!r.ok) return false;
+    const rows = await r.json();
+    crm={};
+    rows.forEach(function(row){ crm[row.lead_id]=row.data; });
+    return true;
+  } catch(e){ return false; }
+}
+
+async function sbSave(id, data){
+  try {
+    const baseUrl = sbUrl.replace(/\/rest\/v1\/?$/,'');
+    const r = await fetch(baseUrl+'/rest/v1/crm_state', {
+      method:'POST',
+      headers:{
+        'apikey':sbKey,
+        'Authorization':'Bearer '+sbKey,
+        'Content-Type':'application/json',
+        'Prefer':'resolution=merge-duplicates,return=minimal'
+      },
+      body: JSON.stringify({lead_id:id, data:data, updated_at:new Date().toISOString()})
+    });
+    return r.ok || r.status === 201 || r.status === 200;
+  } catch(e){ return false; }
+}
+
+function sbSubscribe(){
+  if(!useSupabase||realtimeSub) return;
+  try {
+    const wsUrl = sbUrl.replace(/\/rest\/v1\/?$/,'').replace('https://','wss://').replace('http://','ws://');
+    const ws = new WebSocket(wsUrl+'/realtime/v1/websocket?apikey='+sbKey+'&vsn=1.0.0');
+    ws.onopen = function(){
+      ws.send(JSON.stringify({topic:'realtime:public:crm_state',event:'phx_join',payload:{},ref:'1'}));
+      setSync('live');
+    };
+    ws.onmessage = function(e){
+      try {
+        const msg=JSON.parse(e.data);
+        if(msg.event==='INSERT'||msg.event==='UPDATE'){
+          const r=msg.payload.record;
+          if(r&&r.lead_id){ crm[r.lead_id]=r.data; renderTable(); renderStats(); if(selId===r.lead_id) selectLead(selId); }
+        }
+      } catch(ex){}
+    };
+    ws.onclose = function(){ setTimeout(sbSubscribe, 3000); setSync('offline'); };
+    ws.onerror = function(){ setSync('offline'); };
+    realtimeSub = ws;
+  } catch(e){}
+}
+
+function setSync(state){
+  const dot=document.getElementById('sdot'), txt=document.getElementById('stxt');
+  if(!dot||!txt) return;
+  dot.className='sdot '+state;
+  txt.textContent={live:'Live sync',saving:'Saving\u2026',offline:'Offline \u2014 local only',local:'Local only'}[state]||state;
+}
+
+// ── Save / Load ──
+async function save(id){
+  setSync('saving');
+  const data=crm[id];
+  if(useSupabase){ await sbSave(id,data); }
+  try { localStorage.setItem(SKEY, JSON.stringify(crm)); } catch(e){}
+  setTimeout(function(){ setSync(useSupabase?'live':'local'); }, 600);
+}
+
+function loadLocal(){
+  try { const s=localStorage.getItem(SKEY); if(s){ crm=JSON.parse(s); return true; } } catch(e){}
+  return false;
+}
+
+function getC(id){ return crm[id]||{status:'new',owner:'',notes:'',next_action:'',email:'',activity:[]}; }
+
+// ── Setup / Login flow ──
+function selAgent(btn, id, name, color, bg, ini){
+  document.querySelectorAll('#agrid button').forEach(function(b){
+    b.style.borderColor='#333'; b.style.color='#999';
+  });
+  btn.style.borderColor = color;
+  btn.style.color = color;
+  me = {id:id, name:name, color:color, bg:bg, ini:ini};
+  var lb = document.getElementById('lbtn');
+  lb.disabled = false;
+  lb.style.opacity = '1';
+  lb.style.cursor = 'pointer';
+}
+
+function buildLogin(){ /* hardcoded in HTML */ }
+
+function doLogin(){
+  if(!me) return;
+  const cfg=JSON.parse(localStorage.getItem(CFG)||'{}');
+  if(cfg.url && cfg.key){
+    sbUrl=cfg.url; sbKey=cfg.key; useSupabase=true;
+    startApp();
+  } else {
+    document.getElementById('login').style.display='none';
+    document.getElementById('setup').style.display='flex';
+  }
+}
+
+async function testAndSave(){
+  const url=(document.getElementById('sb-url').value||'').trim();
+  const key=(document.getElementById('sb-key').value||'').trim();
+  const btn=document.getElementById('stbtn');
+  const msg=document.getElementById('stest');
+  if(!url||!key){ msg.className='stest err'; msg.textContent='Both fields are required.'; return; }
+  btn.disabled=true; btn.textContent='Testing…';
+  sbUrl=url.replace(/\/rest\/v1\/?$/,''); sbKey=key;
+  try {
+    const r = await fetch(sbUrl+'/rest/v1/crm_state?limit=1', {
+      headers:{'apikey':key,'Authorization':'Bearer '+key}
+    });
+    if(!r.ok && r.status!==200 && r.status!==204){ throw new Error('HTTP '+r.status); }
+    msg.className='stest ok'; msg.textContent='✓ Connected!';
+    localStorage.setItem(CFG, JSON.stringify({url:sbUrl,key}));
+    useSupabase=true;
+    setTimeout(startApp, 700);
+  } catch(e){
+    msg.className='stest err'; msg.textContent='Connection failed: '+e.message;
+    btn.disabled=false; btn.textContent='Test connection & continue \u2192';
+  }
+}
+
+function clearTest(){ document.getElementById('stest').textContent=''; }
+
+function skipSetup(){
+  useSupabase=false;
+  localStorage.setItem(CFG, JSON.stringify({url:'',key:''}));
+  startApp();
+}
+
+async function startApp(){
+  document.getElementById('login').style.display='none';
+  document.getElementById('setup').style.display='none';
+  const app=document.getElementById('app');
+  app.style.display='flex'; app.style.flexDirection='column';
+  document.getElementById('apill').innerHTML='<div class="adot" style="background:'+me.bg+';color:'+me.color+'">'+me.ini+'</div>'+me.name;
+  setSync('saving');
+  loadLocal();
+  if(useSupabase){ const ok=await sbLoad(); setSync(ok?'live':'local'); sbSubscribe(); }
+  else { setSync('local'); }
+  buildSelects(); applyFilters(); renderStats();
+}
+
+function doLogout(){ if(confirm('Switch agent?')){ realtimeSub&&realtimeSub.close(); location.reload(); } }
+
+// ── Selects ──
+function buildSelects(){
+  const cities=[...new Set(LEADS.map(function(l){return l.cy;}))].sort();
+  const fc=document.getElementById('fCity');
+  cities.forEach(function(c){const o=document.createElement('option');o.value=c;o.textContent=c;fc.appendChild(o);});
+  const fo=document.getElementById('fOwn');
+  const fb=document.getElementById('batch-owner');
+  AGENTS.forEach(function(a){
+    const o=document.createElement('option');o.value=a.id;o.textContent=a.name;fo.appendChild(o);
+    const o2=document.createElement('option');o2.value=a.id;o2.textContent=a.name;fb.appendChild(o2);
+  });
+}
+
+// ── Filters & Sort ──
+function toggleEmailFilter(){
+  showEmail=!showEmail;
+  document.getElementById('email-btn').classList.toggle('act',showEmail);
+  applyFilters();
+}
+
+function toggleMine(){ showMine=!showMine; document.getElementById('mine-btn').classList.toggle('act',showMine); applyFilters(); }
+
+function applyFilters(){
+  const q=document.getElementById('search').value.toLowerCase();
+  const round=document.getElementById('fRound')?document.getElementById('fRound').value:'';
+  const seg=document.getElementById('fSeg').value;
+  const city=document.getElementById('fCity').value;
+  const st=document.getElementById('fSt').value;
+  const ev=document.getElementById('fEv').value;
+  const own=document.getElementById('fOwn').value;
+  filtered=LEADS.filter(function(l){
+    const c=getC(l.id);
+    if(round&&l.round!==round) return false;
+    if(seg&&l.seg!==seg) return false;
+    if(city&&l.cy!==city) return false;
+    if(st&&c.status!==st) return false;
+    if(own&&c.owner!==own) return false;
+    if(showMine&&c.owner!==me.id) return false;
+    if(showEmail&&!(c.next_action&&c.next_action.trim())&&!(c.email&&c.email.trim())) return false;
+    if(ev&&(l.et||'none').toUpperCase()!==ev) return false;
+    if(q&&!(l.n+l.ad+l.cy+l.ph).toLowerCase().includes(q)) return false;
+    return true;
+  });
+  sortData(); renderTable(); renderStats();
+  updateBatchBar();
+}
+
+function rowClick(e,id){
+  if(e.target.type==='checkbox') return;
+  selectLead(id);
+}
+
+function toggleOne(id,cb){
+  if(cb.checked) selected.add(id); else selected.delete(id);
+  updateBatchBar();
+  renderTable();
+}
+
+function toggleAll(cb){
+  if(cb.checked){ filtered.forEach(function(l){selected.add(l.id);}); }
+  else { filtered.forEach(function(l){selected.delete(l.id);}); }
+  updateBatchBar();
+  renderTable();
+}
+
+function updateBatchBar(){
+  const bar=document.getElementById('batch-bar');
+  const cnt=document.getElementById('batch-count');
+  if(!bar) return;
+  const n=selected.size;
+  if(n===0){ bar.classList.add('hidden'); }
+  else { bar.classList.remove('hidden'); cnt.textContent=n+' selected'; }
+  const chkAll=document.getElementById('chk-all');
+  if(chkAll){ chkAll.checked=filtered.length>0&&filtered.every(function(l){return selected.has(l.id);}); chkAll.indeterminate=selected.size>0&&!chkAll.checked; }
+}
+
+function clearSelection(){
+  selected.clear(); updateBatchBar(); renderTable();
+}
+
+async function applyBatch(){
+  const owner=document.getElementById('batch-owner').value;
+  const status=document.getElementById('batch-status').value;
+  if(!owner&&!status){ alert('Please choose an agent or status to apply.'); return; }
+  const ids=[...selected];
+  const promises=ids.map(function(id){
+    ensureCrm(id);
+    if(owner){ crm[id].owner=owner; }
+    if(status){ const old=crm[id].status; crm[id].status=status; crm[id].activity.push({t:nowStr(),ag:me?me.name:'?',msg:'Batch: status '+old+' → '+status+(owner?' + assigned to '+(AGENTS.find(function(a){return a.id===owner;})||{name:'?'}).name:'')}); }
+    else if(owner){ crm[id].activity.push({t:nowStr(),ag:me?me.name:'?',msg:'Batch: assigned to '+(AGENTS.find(function(a){return a.id===owner;})||{name:'?'}).name}); }
+    return save(id);
+  });
+  await Promise.all(promises);
+  clearSelection();
+  renderTable(); renderStats();
+  document.getElementById('batch-owner').value='';
+  document.getElementById('batch-status').value='';
+}
+
+function srt(col){ if(sortCol===col) sortAsc=!sortAsc; else{sortCol=col;sortAsc=col!=='sc';} sortData(); renderTable(); }
+function sortData(){
+  filtered.sort(function(a,b){
+    var va,vb; const ca=getC(a.id),cb=getC(b.id);
+    if(sortCol==='st'){va=ca.status;vb=cb.status;}
+    else if(sortCol==='own'){va=ca.owner;vb=cb.owner;}
+    else if(sortCol==='ev'){va=a.es||0;vb=b.es||0;}
+    else{va=a[sortCol]||0;vb=b[sortCol]||0;}
+    if(typeof va==='string') return sortAsc?va.localeCompare(vb,'de'):vb.localeCompare(va,'de');
+    return sortAsc?va-vb:vb-va;
+  });
+}
+
+// ── Render helpers ──
+const SC={Taxi:'#a78bfa',Logistics:'#fbbf24','Car Dealership':'#60a5fa','Car Rental':'#4ade80'};
+function scCol(s){return s>=80?'#4ade80':s>=60?'#fbbf24':'#888';}
+function spHtml(st){
+  const cls={new:'s-new',called:'s-called',interested:'s-interested',not_interested:'s-lost',email:'s-won',won:'s-won'}[st]||'s-new';
+  return '<span class="sp '+cls+'">'+(ST[st]||st)+'</span>';
+}
+function evHtml(l){
+  if(!l.et) return '<span class="ep">\u2013</span>';
+  const cls={HIGH:'eH',MEDIUM:'eM',LOW:'eL',NONE:'eN'}[l.et]||'ep';
+  return '<span class="'+cls+'">'+l.et+(l.es?' <span style="opacity:.4;font-size:10px">'+l.es+'</span>':'')+'</span>';
+}
+function agPill(oid){
+  const a=AGENTS.find(function(x){return x.id===oid;});
+  return a?'<span style="padding:1px 7px;border-radius:8px;background:'+a.bg+';color:'+a.color+';font-size:10px">'+a.ini+'</span>':'';
+}
+
+// ── Table ──
+function renderTable(){
+  const tb=document.getElementById('tbody');
+  if(!filtered.length){tb.innerHTML='<tr><td colspan="10" class="etd">No leads match filters.</td></tr>';return;}
+  tb.innerHTML=filtered.map(function(l){
+    const c=getC(l.id),sel=l.id===selId?' sel':'',cc=SC[l.seg]||'#888';
+    const chk=selected.has(l.id),chkCls=chk?' checked':'';
+    return '<tr class="'+sel+chkCls+'" onclick="rowClick(event,\''+l.id+'\')">'+
+      '<td class="cb-cell" onclick="event.stopPropagation()"><input type="checkbox" '+(chk?'checked':'')+' onchange="toggleOne(\''+l.id+'\',this)"></td>'+
+      '<td class="c-n" title="'+l.n+'">'+l.n+'</td>'+
+      '<td class="c-sg"><span style="color:'+cc+';font-size:11px">'+l.seg+'</span>'+(l.round==='R2'?'<span style="margin-left:3px;font-size:9px;padding:1px 4px;border-radius:4px;background:#1a1a40;color:#60a5fa">R2</span>':'')+'</td>'+
+      '<td class="c-sc"><div style="display:flex;align-items:center"><span class="pip" style="background:'+scCol(l.sc)+'"></span>'+l.sc+'</div></td>'+
+      '<td class="c-ev">'+evHtml(l)+'</td>'+
+      '<td class="c-dk">'+l.dk+'km</td>'+
+      '<td class="c-cy">'+l.cy+'</td>'+
+      '<td class="c-ph" title="'+l.ph+'">'+(l.ph||'&mdash;')+'</td>'+
+      '<td class="c-st">'+spHtml(c.status)+'</td>'+
+      '<td class="c-ow">'+agPill(c.owner)+'</td>'+
+      '<td class="c-na" style="color:'+(c.next_action?'var(--amber)':'var(--text3)')+'" title="'+(c.next_action||'')+'">'+(c.next_action||'&mdash;')+'</td>'+
+      '</tr>';
+  }).join('');
+}
+
+// ── Stats ──
+function renderStats(){
+  const vals=Object.values(crm);
+  const won=vals.filter(function(c){return c.status==='won';}).length;
+  const inter=vals.filter(function(c){return c.status==='interested'||c.status==='won';}).length;
+  const called=vals.filter(function(c){return c.status&&c.status!=='new';}).length;
+  const cb=vals.filter(function(c){return c.status==='email';}).length;
+  const emails=vals.filter(function(c){return c.email&&c.email.length>3;}).length;
+  document.getElementById('stats-bar').innerHTML=
+    '<div class="sc"><div class="sc-l">Total</div><div class="sc-v">'+LEADS.length+'</div></div>'+
+    '<div class="sc"><div class="sc-l">Called</div><div class="sc-v" style="color:var(--amber)">'+called+'</div></div>'+
+    '<div class="sc"><div class="sc-l">Email sent</div><div class="sc-v" style="color:var(--teal)">'+emails+'</div></div>'+
+    '<div class="sc"><div class="sc-l">Interested</div><div class="sc-v" style="color:var(--green)">'+inter+'</div></div>'+
+    '<div class="sc"><div class="sc-l">Emails got</div><div class="sc-v" style="color:var(--teal)">'+emails+'</div></div>';
+}
+
+// ── Detail panel ──
+function selectLead(id){
+  selId=id; renderTable();
+  const l=LEADS.find(function(x){return x.id===id;}); if(!l) return;
+  const c=getC(id), cc=SC[l.seg]||'#888';
+  const stBtns=['new','called','callback','interested','won','lost'].map(function(s){
+    const active={new:'an',called:'ac',interested:'ai',not_interested:'al',email:'ae',won:'aw'}[s];
+    return '<button class="stb '+(c.status===s?active:'')+'" data-s="'+s+'" onclick="setSt(\''+id+'\',\''+s+'\')">'+ST[s]+'</button>';
+  }).join('');
+  const agOpts=AGENTS.map(function(a){return '<option value="'+a.id+'"'+(c.owner===a.id?' selected':'')+'>'+a.name+'</option>';}).join('');
+  const sigs=l.eg?l.eg.split('|').map(function(s){return '\u2022 '+s.trim();}).join('\n'):'';
+  const acts=(c.activity||[]).slice().reverse().slice(0,6);
+  const actHtml=acts.length?acts.map(function(a){return '<div class="acti"><div class="acti-t">'+a.t+' \u00b7 '+a.ag+'</div>'+a.msg+'</div>';}).join(''):'<div style="color:var(--text3);font-size:12px">No activity yet.</div>';
+  const dp=document.getElementById('dp');
+  dp.className='dp open';
+  dp.innerHTML=
+    '<div class="dh"><div class="dht"><div class="dname">'+l.n+'</div><button class="dclose" onclick="closeDetail()">\u00d7</button></div>'+
+    '<div class="dmeta"><span style="color:'+cc+'">'+l.seg+'</span> \u00b7 '+l.cy+' \u00b7 '+l.dk+'km from station</div></div>'+
+    '<div class="ds"><div class="dst">Contact</div>'+
+    '<div class="dr"><span class="drl">Phone</span><span class="drv">'+(l.ph||'&mdash;')+'</span></div>'+
+    '<div class="dr"><span class="drl">Website</span><span class="drv">'+(l.wb?'<a href="'+l.wb+'" target="_blank">'+l.wb.replace('https://','').replace('http://','').substring(0,30)+'</a>':'&mdash;')+'</span></div>'+
+    '<div class="dr"><span class="drl">Address</span><span class="drv" style="font-size:11px">'+l.ad+'</span></div>'+
+    '<div class="dr"><span class="drl">Rating</span><span class="drv">'+(l.rt?l.rt+' \u2605 ('+l.rv.toLocaleString('de')+')':'&mdash;')+'</span></div></div>'+
+    '<div class="ds"><div class="dst">EV intent'+(l.et?' \u00b7 <span class="e'+l.et[0]+'">'+l.et+(l.es?' ('+l.es+')':'')+'</span>':'')+'</div>'+
+    '<div class="evbox'+(sigs?'':' mt')+'">'+(sigs||'Run enrich_ev_intent.py and import results.')+'</div></div>'+
+    '<div class="ds"><div class="dst">CRM</div>'+
+    '<div class="stg">'+stBtns+'</div>'+
+    '<div class="dst" style="margin-top:6px">Agent</div>'+
+    '<select class="dsel" onchange="setOwner(\''+id+'\',this.value)"><option value="">Unassigned</option>'+agOpts+'</select>'+
+    '<div class="dst">Next action</div>'+
+    '<input class="dinp" id="na-'+id+'" value="'+(c.next_action||'')+'" placeholder="e.g. Call back Tue, Send pricing\u2026">'+
+    '<div class="dst" style="margin-top:4px">&#9993; Email collected</div>'+
+    '<input class="dinp" id="em-'+id+'" value="'+(c.email||'')+'" placeholder="contact@company.de" style="border-color:'+(c.email?'var(--green)':'var(--border2)')+'">'+
+    '<div class="dst" style="margin-top:4px">Call notes</div>'+
+    '<textarea class="dnotes" id="nt-'+id+'" placeholder="Contact name, notes, objections\u2026">'+(c.notes||'')+'</textarea>'+
+    '<div class="srow">'+
+    '<button class="sbtn" onclick="saveNote(\''+id+'\')">Save</button>'+
+    '<span class="sok" id="ok-'+id+'">\u2713</span>'+
+    '<button class="scrbtn" onclick="openScript(\''+id+'\')">&#128222; Script</button>'+
+    '<button class="amb" onclick="assignMe(\''+id+'\')">Assign to me</button>'+
+    '</div></div>'+
+    '<div class="ds"><div class="dst">Activity</div><div class="actlist">'+actHtml+'</div></div>';
+}
+function closeDetail(){ selId=null; document.getElementById('dp').className='dp'; renderTable(); }
+
+// ── CRM actions ──
+function nowStr(){ return new Date().toLocaleString('de-DE',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}); }
+function ensureCrm(id){ if(!crm[id]) crm[id]={status:'new',owner:'',notes:'',next_action:'',email:'',activity:[]}; if(!crm[id].activity) crm[id].activity=[]; }
+
+function setSt(id,st){
+  ensureCrm(id); const old=crm[id].status; crm[id].status=st;
+  crm[id].activity.push({t:nowStr(),ag:me?me.name:'?',msg:'Status: '+old+' \u2192 '+st});
+  save(id);
+  document.querySelectorAll('.stb').forEach(function(b){
+    const active={called:'ac',callback:'acb',interested:'ai',won:'aw',lost:'al'}[b.dataset.s];
+    b.className='stb '+(b.dataset.s===st?active:'');
+  });
+  renderTable(); renderStats();
+}
+function setOwner(id,oid){
+  ensureCrm(id); crm[id].owner=oid;
+  const ag=AGENTS.find(function(a){return a.id===oid;});
+  crm[id].activity.push({t:nowStr(),ag:me?me.name:'?',msg:'Assigned to '+(ag?ag.name:'nobody')});
+  save(id); renderTable(); renderStats();
+}
+function assignMe(id){
+  if(!me) return; ensureCrm(id); crm[id].owner=me.id;
+  crm[id].activity.push({t:nowStr(),ag:me.name,msg:'Assigned to self'});
+  save(id); selectLead(id); renderTable(); renderStats();
+}
+function saveNote(id){
+  ensureCrm(id);
+  crm[id].notes=(document.getElementById('nt-'+id)||{}).value||'';
+  crm[id].next_action=(document.getElementById('na-'+id)||{}).value||'';
+  crm[id].email=(document.getElementById('em-'+id)||{}).value||'';
+  const msg='Notes saved'+(crm[id].email?' \u00b7 Email: '+crm[id].email:'')+(crm[id].next_action?' \u00b7 Next: '+crm[id].next_action:'');
+  crm[id].activity.push({t:nowStr(),ag:me?me.name:'?',msg:msg});
+  save(id);
+  const ok=document.getElementById('ok-'+id); if(ok){ok.style.display='inline';setTimeout(function(){ok.style.display='none';},1800);}
+  const ef=document.getElementById('em-'+id); if(ef) ef.style.borderColor=crm[id].email?'var(--green)':'var(--border2)';
+  renderTable();
+}
+
+// ── Call script ──
+function openScript(id){
+  const l=LEADS.find(function(x){return x.id===id;}); if(!l) return;
+  const sc=SCRIPTS[l.seg]||SCRIPTS['Car Rental'];
+  const agName=me?me.name:'[Ihr Name]';
+  function f(s){return s.replace(/\[NAME\]/g,agName).replace(/\[CITY\]/g,l.cy).replace(/\[DIST\]/g,l.dk+'km');}
+  document.getElementById('mcard-script').innerHTML=
+    '<div class="mtop"><div class="mtitle">&#128222; Call script</div><button class="mx" onclick="closeM(\'modal-script\')">\u00d7</button></div>'+
+    '<div class="cs-co">'+l.n+' \u00b7 '+l.cy+'</div>'+
+    '<div class="cs-sec"><div class="cs-lbl">1. Opener</div><div class="cs-blk">'+f(sc.o)+'</div></div>'+
+    '<div class="cs-sec"><div class="cs-lbl">2. Value pitch</div><div class="cs-blk">'+f(sc.p)+'</div></div>'+
+    '<div class="cs-sec"><div class="cs-lbl">3. Ask &mdash; get the email</div><div class="cs-ask">'+f(sc.a)+'</div></div>'+
+    '<div class="cs-sec"><div class="cs-lbl">&#128161; Tip</div><div class="cs-tip">'+sc.t+'</div></div>'+
+    '<button class="mbtn" onclick="closeM(\'modal-script\')">Close</button>';
+  openM('modal-script');
+}
+
+// ── Enrich import ──
+const edrop=document.getElementById('edrop');
+edrop.addEventListener('dragover',function(e){e.preventDefault();edrop.classList.add('drag');});
+edrop.addEventListener('dragleave',function(){edrop.classList.remove('drag');});
+edrop.addEventListener('drop',function(e){e.preventDefault();edrop.classList.remove('drag');if(e.dataTransfer.files[0])processFile(e.dataTransfer.files[0]);});
+function handleFile(inp){if(inp.files[0])processFile(inp.files[0]);}
+function processFile(file){
+  const r=new FileReader();
+  r.onload=function(e){
+    const txt=e.target.result; let updated=0;
+    try{
+      const lines=txt.split('\n');
+      const hdrs=lines[0].split(',').map(function(h){return h.replace(/"/g,'').trim();});
+      const ni=hdrs.indexOf('name'),esi=hdrs.indexOf('ev_intent_score'),eti=hdrs.indexOf('ev_intent_tier'),sigi=hdrs.indexOf('strong_signals'),medi=hdrs.indexOf('medium_signals');
+      for(var i=1;i<lines.length;i++){
+        const row=parseCSVRow(lines[i]); if(!row.length) continue;
+        const name=row[ni]?row[ni].replace(/"/g,'').trim():''; if(!name) continue;
+        const lead=LEADS.find(function(l){return l.n.substring(0,Math.min(18,name.length))===name.substring(0,18);});
+        if(lead){
+          lead.es=parseInt(row[esi])||0;
+          lead.et=row[eti]?row[eti].replace(/"/g,'').trim():'NONE';
+          const sigs=[row[sigi],row[medi]].filter(Boolean).map(function(s){return s.replace(/"/g,'').trim();}).filter(Boolean).join(' | ');
+          lead.eg=sigs; updated++;
+        }
+      }
+      closeM('modal-enrich'); alert('EV scores imported for '+updated+' leads.'); applyFilters();
+    }catch(err){alert('Parse error: '+err.message);}
+  };
+  r.readAsText(file,'utf-8');
+}
+function parseCSVRow(line){
+  const res=[]; var cur='',inQ=false;
+  for(var i=0;i<line.length;i++){
+    const c=line[i];
+    if(c==='"'){inQ=!inQ;}else if(c===','&&!inQ){res.push(cur);cur='';}else{cur+=c;}
+  }
+  res.push(cur); return res;
+}
+
+// ── Export ──
+function exportCSV(){
+  const h='Name,Segment,Lead Score,EV Tier,EV Score,EV Signals,Distance,City,Phone,Website,CRM Status,Agent,Email Collected,Next Action,Notes';
+  function esc(v){return '"'+String(v||'').replace(/"/g,'""')+'"';}
+  const lines=[h].concat(filtered.map(function(l){
+    const c=getC(l.id),ag=AGENTS.find(function(a){return a.id===c.owner;});
+    return [l.n,l.seg,l.sc,l.et||'pending',l.es||0,l.eg||'',l.dk,l.cy,l.ph,l.wb,c.status||'new',ag?ag.name:'',c.email||'',c.next_action||'',c.notes||''].map(esc).join(',');
+  }));
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([lines.join('\n')],{type:'text/csv'}));
+  a.download='corymba_leads.csv'; a.click();
+}
+
+function openM(id){document.getElementById(id).classList.add('open');}
+function closeM(id){document.getElementById(id).classList.remove('open');}
+
+// Pre-load Round 1 CRM data from Isabell's export
+(function(){
+  try {
+    const KEY = 'corymba-crm-v5';
+    const imported = {"ChIJjeZkkMRXn0cRau2YGDADy5M":{"status":"callback","owner":"sebastian","notes":"","next_action":"","email":"","activity":[{"t":"10.07.26","ag":"Sebastian","msg":"Imported from R1 export — status: callback"}]},"ChIJIfaSRRQRvUcRz7di_-cS4OU":{"status":"lost","owner":"sebastian","notes":"Haben eigene Möglichkeiten","next_action":"","email":"","activity":[{"t":"10.07.26","ag":"Sebastian","msg":"Imported from R1 export — status: lost | Notes: Haben eigene Möglichkeiten"}]},"ChIJ39YBzp9HvUcR6Ux7mlh8Hxw":{"status":"called","owner":"luca","notes":"Haben Elektroautos. Dispo ging ran, kann sowas nicht entscheiden. Soll Infos per Mail schicken. Alternative Mail: bsc@metropolistaxi.de","next_action":"Send Mail","email":"info@metropolistaxi.de","activity":[{"t":"10.07.26","ag":"Luca","msg":"Imported from R1 export — status: called | Notes: Haben Elektroautos. Dispo ging ran, kann sowas nicht entsche"}]},"ChIJUXaaO-dWn0cRkmio6JSlLmw":{"status":"called","owner":"sebastian","notes":"Hat die Info aufgenommen. Sind grundsätzlich gut aufgestellt aber falls bedarf besteht, weis er bescheid","next_action":"","email":"","activity":[{"t":"10.07.26","ag":"Sebastian","msg":"Imported from R1 export — status: called | Notes: Hat die Info aufgenommen. Sind grundsätzlich gut aufgestellt"}]},"ChIJuUoST2EslkcR9Vn05Hqc10Q":{"status":"called","owner":"sebastian","notes":"sind selber gut Ausgestattet","next_action":"","email":"","activity":[{"t":"10.07.26","ag":"Sebastian","msg":"Imported from R1 export — status: called | Notes: sind selber gut Ausgestattet"}]},"ChIJt4XopMCXnkcRliwNvovD6J0":{"status":"lost","owner":"luca","notes":"Haben eigene Ladesäulen ","next_action":"","email":"","activity":[{"t":"10.07.26","ag":"Luca","msg":"Imported from R1 export — status: lost | Notes: Haben eigene Ladesäulen "}]},"ChIJDRPkuKxXn0cRLUhyrCCoyfE":{"status":"lost","owner":"sebastian","notes":"","next_action":"","email":"","activity":[{"t":"10.07.26","ag":"Sebastian","msg":"Imported from R1 export — status: lost"}]},"ChIJF-FwRbkapEcRuSOT9VrDZKc":{"status":"lost","owner":"sebastian","notes":"","next_action":"","email":"","activity":[{"t":"10.07.26","ag":"Sebastian","msg":"Imported from R1 export — status: lost"}]},"ChIJXbEjLmEslkcRPiXX0tjVc_A":{"status":"called","owner":"sebastian","notes":"Haben eigene Möglichkeiten","next_action":"","email":"","activity":[{"t":"10.07.26","ag":"Sebastian","msg":"Imported from R1 export — status: called | Notes: Haben eigene Möglichkeiten"}]},"ChIJe9vl7uwapEcRTv0N0yBH57o":{"status":"interested","owner":"isabell","notes":"Sie würden es sich mal anschauen und evtl. in Betracht ziehen ","next_action":"Infos senden","email":"info@renault-weimar.de","activity":[{"t":"10.07.26","ag":"Isabell","msg":"Imported from R1 export — status: interested | Notes: Sie würden es sich mal anschauen und evtl. in Betracht ziehe"}]},"ChIJpyGRzsG5pEcRrR1bj4nKlB4":{"status":"lost","owner":"isabell","notes":"Sie sind gut selber Aufgestellt","next_action":"","email":"","activity":[{"t":"10.07.26","ag":"Isabell","msg":"Imported from R1 export — status: lost | Notes: Sie sind gut selber Aufgestellt"}]},"ChIJqyttIhMXvUcR6dER_HRBTJY":{"status":"lost","owner":"isabell","notes":"Sie laden selber bei sich ","next_action":"","email":"","activity":[{"t":"10.07.26","ag":"Isabell","msg":"Imported from R1 export — status: lost | Notes: Sie laden selber bei sich "}]},"ChIJXwhHXN8QvUcR2GwENu2qid0":{"status":"lost","owner":"isabell","notes":"Sind selber gut Ausgestattet","next_action":"","email":"","activity":[{"t":"10.07.26","ag":"Isabell","msg":"Imported from R1 export — status: lost | Notes: Sind selber gut Ausgestattet"}]},"ChIJ04IWhnIXvUcR3H5zIqwcII8":{"status":"lost","owner":"isabell","notes":"ebenfalls, sind gut Aufgestellt was das Laden angeht ","next_action":"","email":"","activity":[{"t":"10.07.26","ag":"Isabell","msg":"Imported from R1 export — status: lost | Notes: ebenfalls, sind gut Aufgestellt was das Laden angeht "}]},"ChIJldHnqnb_nkcRRx2l1RWFOU4":{"status":"lost","owner":"isabell","notes":"Sie laden bei sich selber ","next_action":"","email":"","activity":[{"t":"10.07.26","ag":"Isabell","msg":"Imported from R1 export — status: lost | Notes: Sie laden bei sich selber "}]},"ChIJYR7LfAGao0cROdLYzPt4570":{"status":"lost","owner":"isabell","notes":"Sie laden Ihre Autos vor Ort selber","next_action":"","email":"","activity":[{"t":"10.07.26","ag":"Isabell","msg":"Imported from R1 export — status: lost | Notes: Sie laden Ihre Autos vor Ort selber"}]},"ChIJZbkFO2sXvUcRUJ9TuNrraAY":{"status":"lost","owner":"isabell","notes":"Laden bei sich selber","next_action":"","email":"","activity":[{"t":"10.07.26","ag":"Isabell","msg":"Imported from R1 export — status: lost | Notes: Laden bei sich selber"}]},"ChIJZdEQqhRXn0cRWBVxXVy1Q-U":{"status":"called","owner":"luca","notes":"Komme nicht am KI Telefonassistent vorbei ","next_action":"","email":"","activity":[{"t":"10.07.26","ag":"Luca","msg":"Imported from R1 export — status: called | Notes: Komme nicht am KI Telefonassistent vorbei "}]},"ChIJDZhiFI1HvUcR4y52Y8igqwo":{"status":"called","owner":"luca","notes":"Haben AC Lader, haben was Laden angeht Vorgaben von Zentrale. Soll dennoch Infos per Mail schicken.","next_action":"Send Mail","email":"de.st.aschaffenburg@europcar.com","activity":[{"t":"10.07.26","ag":"Luca","msg":"Imported from R1 export — status: called | Notes: Haben AC Lader, haben was Laden angeht Vorgaben von Zentrale"}]},"ChIJSdpUvypAvUcR8PckmpMT2II":{"status":"lost","owner":"isabell","notes":"Keine E-Fahrzeuge","next_action":"","email":"","activity":[{"t":"10.07.26","ag":"Isabell","msg":"Imported from R1 export — status: lost | Notes: Keine E-Fahrzeuge"}]},"ChIJP6C62sG5pEcRUu4GWzus-QE":{"status":"lost","owner":"isabell","notes":"Sie sind selber gut aufgestellt was laden angeht. ","next_action":"","email":"","activity":[{"t":"10.07.26","ag":"Isabell","msg":"Imported from R1 export — status: lost | Notes: Sie sind selber gut aufgestellt was laden angeht. "}]},"ChIJ_____3s4vUcR2C50Jn0T840":{"status":"lost","owner":"isabell","notes":"Sie sind selber gut Aufgestellt ","next_action":"","email":"","activity":[{"t":"10.07.26","ag":"Isabell","msg":"Imported from R1 export — status: lost | Notes: Sie sind selber gut Aufgestellt "}]},"ChIJMz9BHkURvUcRXtC5Fq3d6Ow":{"status":"lost","owner":"isabell","notes":"Eigene Möglichkeiten","next_action":"","email":"","activity":[{"t":"10.07.26","ag":"Isabell","msg":"Imported from R1 export — status: lost | Notes: Eigene Möglichkeiten"}]},"ChIJpUtF0l8RvUcR1G3APiMYvLE":{"status":"lost","owner":"isabell","notes":"Eigene Möglichkeiten","next_action":"","email":"","activity":[{"t":"10.07.26","ag":"Isabell","msg":"Imported from R1 export — status: lost | Notes: Eigene Möglichkeiten"}]},"ChIJGSiQDOuXnkcRchBd1KOaT_E":{"status":"lost","owner":"isabell","notes":"Sie laden bei sich vor Ort ","next_action":"","email":"","activity":[{"t":"10.07.26","ag":"Isabell","msg":"Imported from R1 export — status: lost | Notes: Sie laden bei sich vor Ort "}]},"ChIJk6G8te5Wn0cRXceY6eyaC_c":{"status":"lost","owner":"luca","notes":"Eigene Ladesäulen ","next_action":"","email":"","activity":[{"t":"10.07.26","ag":"Luca","msg":"Imported from R1 export — status: lost | Notes: Eigene Ladesäulen "}]},"ChIJyW91umVWn0cROfVwNEoJB_M":{"status":"lost","owner":"isabell","notes":"Info zwar aufgenommen, laden aber selber vor Ort. ","next_action":"","email":"","activity":[{"t":"10.07.26","ag":"Isabell","msg":"Imported from R1 export — status: lost | Notes: Info zwar aufgenommen, laden aber selber vor Ort. "}]},"ChIJ1Q0MRxFXn0cRH9In4DRmciA":{"status":"lost","owner":"isabell","notes":"Sie sind selber gut aufgestellt ","next_action":"","email":"","activity":[{"t":"10.07.26","ag":"Isabell","msg":"Imported from R1 export — status: lost | Notes: Sie sind selber gut aufgestellt "}]},"ChIJdbeRrIsOoUcRknUgWvEKQTo":{"status":"lost","owner":"isabell","notes":"Sind gut Ausgestattet","next_action":"","email":"","activity":[{"t":"10.07.26","ag":"Isabell","msg":"Imported from R1 export — status: lost | Notes: Sind gut Ausgestattet"}]},"ChIJA5_QlLoapEcRxsPxVfr52NE":{"status":"lost","owner":"isabell","notes":"Sie sind sehr gut Ausgestattet","next_action":"","email":"","activity":[{"t":"10.07.26","ag":"Isabell","msg":"Imported from R1 export — status: lost | Notes: Sie sind sehr gut Ausgestattet"}]},"ChIJ5YkvRfK5pEcRP8GiPWGbdZM":{"status":"lost","owner":"isabell","notes":"Haben eigene Ladelösungen","next_action":"","email":"","activity":[{"t":"10.07.26","ag":"Isabell","msg":"Imported from R1 export — status: lost | Notes: Haben eigene Ladelösungen"}]},"ChIJsWJAQ99Xn0cRXld69B_bb80":{"status":"called","owner":"luca","notes":"MA vor Ort wissen nichts über Tarif, Laden vor Ort","next_action":"","email":"","activity":[{"t":"10.07.26","ag":"Luca","msg":"Imported from R1 export — status: called | Notes: MA vor Ort wissen nichts über Tarif, Laden vor Ort"}]},"ChIJ0SAuCcYapEcRb3itxxepFzQ":{"status":"called","owner":"luca","notes":"gleiches wie Oben, KI Telefon ","next_action":"","email":"","activity":[{"t":"10.07.26","ag":"Luca","msg":"Imported from R1 export — status: called | Notes: gleiches wie Oben, KI Telefon "}]},"ChIJEVv2Zo1Ac0ERnvNY298rq7k":{"status":"lost","owner":"luca","notes":"Haben eigene DC-Lader, sind nicht voll ausgelastet.","next_action":"Ignore","email":"","activity":[{"t":"10.07.26","ag":"Luca","msg":"Imported from R1 export — status: lost | Notes: Haben eigene DC-Lader, sind nicht voll ausgelastet."}]},"ChIJv94vjRr_nkcRSgauxOSkbo0":{"status":"called","owner":"isabell","notes":"Servicetelefon, am besten Infos per Mail","next_action":"","email":"","activity":[{"t":"10.07.26","ag":"Isabell","msg":"Imported from R1 export — status: called | Notes: Servicetelefon, am besten Infos per Mail"}]},"ChIJ79YWARsbpEcRR1PCIRmeio0":{"status":"lost","owner":"luca","notes":"Sie sind gut selber Ausgestattet","next_action":"","email":"","activity":[{"t":"10.07.26","ag":"Luca","msg":"Imported from R1 export — status: lost | Notes: Sie sind gut selber Ausgestattet"}]},"ChIJK_5oQc8apEcR0l5h4nOgWcI":{"status":"called","owner":"isabell","notes":"Servicetelefon, können es per Mail schicken","next_action":"","email":"reservierung@avis.de","activity":[{"t":"10.07.26","ag":"Isabell","msg":"Imported from R1 export — status: called | Notes: Servicetelefon, können es per Mail schicken"}]},"ChIJq_bFUvQHmUcRQ6_sRnCPz0c":{"status":"lost","owner":"isabell","notes":"Sie laden selber vor Ort.","next_action":"","email":"","activity":[{"t":"10.07.26","ag":"Isabell","msg":"Imported from R1 export — status: lost | Notes: Sie laden selber vor Ort."}]},"ChIJ0-QIPy0_u0cRXBK5Uq4JYv4":{"status":"called","owner":"isabell","notes":"Servicetelefon, sollen Infos per Mail schicken","next_action":"Infos per Mail","email":"kundenbetreuung@sixt.com","activity":[{"t":"10.07.26","ag":"Isabell","msg":"Imported from R1 export — status: called | Notes: Servicetelefon, sollen Infos per Mail schicken"}]},"ChIJ_9zMa5c2o0cR5t5FG3I-Nkc":{"status":"called","owner":"isabell","notes":"Servicetelefon, MA sagt wir sollen Info an allgemeine E-Mail schicken. ","next_action":"","email":"","activity":[{"t":"10.07.26","ag":"Isabell","msg":"Imported from R1 export — status: called | Notes: Servicetelefon, MA sagt wir sollen Info an allgemeine E-Mail"}]},"ChIJB_axQedHvUcROabv2gWbaWQ":{"status":"called","owner":"isabell","notes":"KI Servicetelefon, komme nicht weiter ","next_action":"","email":"","activity":[{"t":"10.07.26","ag":"Isabell","msg":"Imported from R1 export — status: called | Notes: KI Servicetelefon, komme nicht weiter "}]},"ChIJV7rqMpb3okcRkpsPPitFxHA":{"status":"lost","owner":"isabell","notes":"Sie haben selber Ladesäulen ","next_action":"","email":"","activity":[{"t":"10.07.26","ag":"Isabell","msg":"Imported from R1 export — status: lost | Notes: Sie haben selber Ladesäulen "}]},"ChIJU1RQ-Qn_nkcREsR94OOgCSk":{"status":"called","owner":"isabell","notes":"Infos am besten per Mail","next_action":"Infos per Mail ","email":"infomaster@europcar.com","activity":[{"t":"10.07.26","ag":"Isabell","msg":"Imported from R1 export — status: called | Notes: Infos am besten per Mail"}]},"ChIJj0D_jI9YvEcR3Lb7bQgg0Jk":{"status":"called","owner":"isabell","notes":"Servicetelefon, Sie können dazu nichts sagen, konnte mir keinen AP nennen ","next_action":"","email":"","activity":[{"t":"10.07.26","ag":"Isabell","msg":"Imported from R1 export — status: called | Notes: Servicetelefon, Sie können dazu nichts sagen, konnte mir kei"}]},"ChIJ_Wow15c1mUcRiQA47KMdAG0":{"status":"called","owner":"isabell","notes":"Siehe oben, Servicemitarbeiter können dazu nichts sagen. Info am besten per Mail mitteilen. ","next_action":"","email":"webmaster_de@hertz.com","activity":[{"t":"10.07.26","ag":"Isabell","msg":"Imported from R1 export — status: called | Notes: Siehe oben, Servicemitarbeiter können dazu nichts sagen. Inf"}]},"ChIJUQI_COWXnkcRnFGzePgIhDY":{"status":"lost","owner":"isabell","notes":"Sie laden selber vor Ort","next_action":"","email":"","activity":[{"t":"10.07.26","ag":"Isabell","msg":"Imported from R1 export — status: lost | Notes: Sie laden selber vor Ort"}]},"ChIJEZAswqQ2o0cRbze7pKS_XQ4":{"status":"lost","owner":"isabell","notes":"Sie laden bei sich vor Ort ","next_action":"","email":"","activity":[{"t":"10.07.26","ag":"Isabell","msg":"Imported from R1 export — status: lost | Notes: Sie laden bei sich vor Ort "}]},"ChIJyaPpGgxIvUcRP4HbJoYr-Vw":{"status":"called","owner":"isabell","notes":"Servicetelefon, dort kann niemand was sagen, vielleicht Infos direkt per Mail senden. ","next_action":"webmaster_de@hertz.com","email":"","activity":[{"t":"10.07.26","ag":"Isabell","msg":"Imported from R1 export — status: called | Notes: Servicetelefon, dort kann niemand was sagen, vielleicht Info"}]},"ChIJXfukQ88apEcRe3RUivEE_co":{"status":"lost","owner":"sebastian","notes":"","next_action":"","email":"","activity":[{"t":"10.07.26","ag":"Sebastian","msg":"Imported from R1 export — status: lost"}]},"ChIJqYelYhWNo0cRGZlC1L-ZNh4":{"status":"lost","owner":"isabell","notes":"Keine E-Fahrzeuge ","next_action":"","email":"","activity":[{"t":"10.07.26","ag":"Isabell","msg":"Imported from R1 export — status: lost | Notes: Keine E-Fahrzeuge "}]},"ChIJm4S0pBz2vEcRXTkRVN-STR4":{"status":"called","owner":"isabell","notes":"Servicetelefon, MA hat Info aufgenommen und weitergeleitet","next_action":"","email":"","activity":[{"t":"10.07.26","ag":"Isabell","msg":"Imported from R1 export — status: called | Notes: Servicetelefon, MA hat Info aufgenommen und weitergeleitet"}]},"ChIJiWUl2KycvUcRDSlEwEs20J0":{"status":"lost","owner":"isabell","notes":"Sie haben keine E-Fahrzeuge ","next_action":"","email":"","activity":[{"t":"10.07.26","ag":"Isabell","msg":"Imported from R1 export — status: lost | Notes: Sie haben keine E-Fahrzeuge "}]},"ChIJA3_2yuGmPAQREGyDGBnj9D4":{"status":"lost","owner":"isabell","notes":"Keine E-Fahrzeuge ","next_action":"","email":"","activity":[{"t":"10.07.26","ag":"Isabell","msg":"Imported from R1 export — status: lost | Notes: Keine E-Fahrzeuge "}]},"ChIJ-0Ptr4c3o0cR1eZnRUep2F0":{"status":"lost","owner":"isabell","notes":"Keine E-Fahrzeuge ","next_action":"","email":"","activity":[{"t":"10.07.26","ag":"Isabell","msg":"Imported from R1 export — status: lost | Notes: Keine E-Fahrzeuge "}]},"ChIJhVVtbBEXvUcRy2exmv66Ebg":{"status":"lost","owner":"isabell","notes":"Keine E-Fahrzeuge","next_action":"","email":"","activity":[{"t":"10.07.26","ag":"Isabell","msg":"Imported from R1 export — status: lost | Notes: Keine E-Fahrzeuge"}]},"ChIJww3YMaIro0cR1jh3S8TOGCk":{"status":"lost","owner":"isabell","notes":"Keine E-Fahrzeuge","next_action":"","email":"","activity":[{"t":"10.07.26","ag":"Isabell","msg":"Imported from R1 export — status: lost | Notes: Keine E-Fahrzeuge"}]},"ChIJJcJ3wqdjoUcRHzqAK6LCtFo":{"status":"lost","owner":"isabell","notes":"Keine E-Fahrzeuge","next_action":"","email":"","activity":[{"t":"10.07.26","ag":"Isabell","msg":"Imported from R1 export — status: lost | Notes: Keine E-Fahrzeuge"}]},"ChIJW6phOsQtlkcRlje_eKxCJIE":{"status":"lost","owner":"isabell","notes":"Keine Elektrofahrzeuge im Bestand","next_action":"","email":"","activity":[{"t":"10.07.26","ag":"Isabell","msg":"Imported from R1 export — status: lost | Notes: Keine Elektrofahrzeuge im Bestand"}]},"ChIJd66a3_DEpEcRTxzFG2TUrjk":{"status":"lost","owner":"isabell","notes":"Keine E-Fahrzeuge ","next_action":"","email":"","activity":[{"t":"10.07.26","ag":"Isabell","msg":"Imported from R1 export — status: lost | Notes: Keine E-Fahrzeuge "}]}};
+    const existing = localStorage.getItem(KEY);
+    const existingData = existing ? JSON.parse(existing) : {};
+    // Add manually restored leads
+const extras = {"universal-transport-staufenberg":{"status":"interested","owner":"isabell","notes":"Sie haben LKW im Bestand, sollen gerne mehr Infos per Mail schicken, sofern Sie auch LKW nachts dort laden können","next_action":"Infos per Mail","email":"giessen@gruber-logistics.com","activity":[{"t":"10.07.26","ag":"Isabell","msg":"Interested — LKW im Bestand, Infos per Mail | Email: giessen@gruber-logistics.com"}]},"huck-finn-logistik-weimar":{"status":"interested","owner":"sebastian","notes":"Sie gibt es dem Chef weiter, könnte in Betracht kommen","next_action":"","email":"info@huckfinn-umzug.de","activity":[{"t":"10.07.26","ag":"Sebastian","msg":"Interested — Chef weiterleiten | Email: info@huckfinn-umzug.de"}]}};
+Object.assign(imported, extras);
+const merged = Object.assign({}, imported);
+    // Existing data wins (user's own entries override import)
+    for(const id of Object.keys(existingData)){
+      if(existingData[id] && existingData[id].status && existingData[id].status !== 'new'){
+        merged[id] = existingData[id];
+      } else if(existingData[id] && (existingData[id].notes || existingData[id].email)){
+        merged[id] = existingData[id];
+      }
+    }
+    localStorage.setItem(KEY, JSON.stringify(merged));
+  } catch(e){}
+})();
+
+// Pre-load CRM data from all previous calls
+(function(){
+  try {
+    const KEY = 'corymba-crm-v5';
+    const imported = {"ChIJjeZkkMRXn0cRau2YGDADy5M":{"status":"called","owner":"sebastian","notes":"","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Sebastian","msg":"Status: called"}]},"ChIJv_aaJnT_nkcRVNdV4bjvwN0":{"status":"not_interested","owner":"sebastian","notes":"Sie haben eigene Ladelösungen vor Ort. ","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Sebastian","msg":"Status: not_interested | Sie haben eigene Ladelösungen vor Ort. "}]},"ChIJIfaSRRQRvUcRz7di_-cS4OU":{"status":"not_interested","owner":"sebastian","notes":"Haben eigene Möglichkeiten","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Sebastian","msg":"Status: not_interested | Haben eigene Möglichkeiten"}]},"Metropolis Taxi GmbHAschaffenb":{"status":"email","owner":"luca","notes":"Haben Elektroautos. Dispo ging ran, kann sowas nicht entscheiden. Soll Infos per Mail schicken. Alternative Mail: bsc@metropolistaxi.de","next_action":"Send Mail","email":"info@metropolistaxi.de","activity":[{"t":"04.08.26","ag":"Luca","msg":"Status: email | Email: info@metropolistaxi.de | Haben Elektroautos. Dispo ging ran, kann sowas nicht entsche"}]},"Ramto.de | Räder u. Eschwege":{"status":"called","owner":"sebastian","notes":"Servicemitarbeiter dran gehabt, konnte mir nicht weiterhelfen.","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"","msg":"Status: called | Servicemitarbeiter dran gehabt, konnte mir nicht weiterhelfe"}]},"ChIJUXaaO-dWn0cRkmio6JSlLmw":{"status":"called","owner":"sebastian","notes":"Hat die Info aufgenommen. Sind grundsätzlich gut aufgestellt aber falls bedarf besteht, weis er bescheid","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Sebastian","msg":"Status: called | Hat die Info aufgenommen. Sind grundsätzlich gut aufgestellt"}]},"ChIJryXxPsFHvUcRvibg5PjA0fs":{"status":"not_interested","owner":"sebastian","notes":"Eigene Ladelösung","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Sebastian","msg":"Status: not_interested | Eigene Ladelösung"}]},"ChIJx7Uwxo1HvUcRzhxaOBfvfIM":{"status":"not_interested","owner":"sebastian","notes":"Laden selber vor Ort","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Sebastian","msg":"Status: not_interested | Laden selber vor Ort"}]},"ChIJB433yP5YvEcRy_UMrWhwWTg":{"status":"not_interested","owner":"sebastian","notes":"Sind selber gut Aufgestellt","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Sebastian","msg":"Status: not_interested | Sind selber gut Aufgestellt"}]},"ChIJuUoST2EslkcR9Vn05Hqc10Q":{"status":"called","owner":"sebastian","notes":"sind selber gut Ausgestattet","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Sebastian","msg":"Status: called | sind selber gut Ausgestattet"}]},"ChIJfaoiXtaXnkcRc96GEOFP-XU":{"status":"not_interested","owner":"sebastian","notes":"Eigene Ladelösungen","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Sebastian","msg":"Status: not_interested | Eigene Ladelösungen"}]},"POLO Motorrad Store Nürnberg":{"status":"not_interested","owner":"sebastian","notes":"Keine EV","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"","msg":"Status: not_interested | Keine EV"}]},"Louis Aschaffenburg Aschaffenb":{"status":"not_interested","owner":"sebastian","notes":"Keine EV","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"","msg":"Status: not_interested | Keine EV"}]},"ChIJT3-6M2X_nkcRdfSdXQIj2lg":{"status":"not_interested","owner":"sebastian","notes":"Keine EV","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"","msg":"Status: not_interested | Keine EV"}]},"Louis Augsburg - MotAugsburg":{"status":"not_interested","owner":"sebastian","notes":"Keine EV","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"","msg":"Status: not_interested | Keine EV"}]},"ChIJmUI79uwapEcRd89Vq6swFmY":{"status":"called","owner":"sebastian","notes":"Nur KI Telefon","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"","msg":"Status: called | Nur KI Telefon"}]},"ChIJ6yH0JAD3vEcRkmf21N1rEq8":{"status":"called","owner":"luca","notes":"Servicetelefon","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Luca","msg":"Status: called | Servicetelefon"}]},"ChIJeYeHKTgXvUcRSg51P1qGVTA":{"status":"called","owner":"isabell","notes":"Servicetelefon, am besten Infos per Mail","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Isabell","msg":"Status: called | Servicetelefon, am besten Infos per Mail"}]},"Opel Autohaus KropfNürnberg":{"status":"not_interested","owner":"sebastian","notes":"","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Sebastian","msg":"Status: not_interested"}]},"ChIJF-FwRbkapEcRuSOT9VrDZKc":{"status":"not_interested","owner":"sebastian","notes":"","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Sebastian","msg":"Status: not_interested"}]},"ChIJGT1_a1XimEcRKG7OZkyvbhs":{"status":"not_interested","owner":"sebastian","notes":"Selbst gut Aufgestellt","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Sebastian","msg":"Status: not_interested | Selbst gut Aufgestellt"}]},"ChIJvWlxRbj_nkcReeLzZHr7mPo":{"status":"not_interested","owner":"sebastian","notes":"Eigene Ladelösungen","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Sebastian","msg":"Status: not_interested | Eigene Ladelösungen"}]},"ChIJYR7LfAGao0cRoHq625-50NY":{"status":"not_interested","owner":"sebastian","notes":"Eigene Ladelösungen vor Ort","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Sebastian","msg":"Status: not_interested | Eigene Ladelösungen vor Ort"}]},"ChIJXbEjLmEslkcRPiXX0tjVc_A":{"status":"called","owner":"sebastian","notes":"Haben eigene Möglichkeiten","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Sebastian","msg":"Status: called | Haben eigene Möglichkeiten"}]},"Alexus AutomobileWorms":{"status":"not_interested","owner":"sebastian","notes":"Eigene Ladelösung","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Sebastian","msg":"Status: not_interested | Eigene Ladelösung"}]},"ChIJR61ZQeuXnkcRbEYUvnQCqcI":{"status":"not_interested","owner":"sebastian","notes":"Eigene Ladelösung vor Ort","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Sebastian","msg":"Status: not_interested | Eigene Ladelösung vor Ort"}]},"ChIJWbT341qomUcRL-jatt5DD5E":{"status":"not_interested","owner":"sebastian","notes":"Keine EV","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"","msg":"Status: not_interested | Keine EV"}]},"ChIJu38wpWUslkcRgkeGJIKCDPs":{"status":"not_interested","owner":"sebastian","notes":"Keine EV","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"","msg":"Status: not_interested | Keine EV"}]},"ChIJzyeR9lGOokcR9n408J3LWho":{"status":"not_interested","owner":"sebastian","notes":"Sie laden selber","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Sebastian","msg":"Status: not_interested | Sie laden selber"}]},"ChIJe9vl7uwapEcRTv0N0yBH57o":{"status":"interested","owner":"isabell","notes":"Sie würden es sich mal anschauen und evtl. in Betracht ziehen ","next_action":"Infos senden","email":"info@renault-weimar.de","activity":[{"t":"04.08.26","ag":"Isabell","msg":"Status: interested | Email: info@renault-weimar.de | Sie würden es sich mal anschauen und evtl. in Betracht ziehe"}]},"ChIJpyGRzsG5pEcRrR1bj4nKlB4":{"status":"not_interested","owner":"isabell","notes":"Sie sind gut selber Aufgestellt","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Isabell","msg":"Status: not_interested | Sie sind gut selber Aufgestellt"}]},"ChIJqyttIhMXvUcR6dER_HRBTJY":{"status":"not_interested","owner":"isabell","notes":"Sie laden selber bei sich ","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Isabell","msg":"Status: not_interested | Sie laden selber bei sich "}]},"ChIJXwhHXN8QvUcR2GwENu2qid0":{"status":"not_interested","owner":"isabell","notes":"Sind selber gut Ausgestattet","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Isabell","msg":"Status: not_interested | Sind selber gut Ausgestattet"}]},"ChIJ04IWhnIXvUcR3H5zIqwcII8":{"status":"not_interested","owner":"isabell","notes":"ebenfalls, sind gut Aufgestellt was das Laden angeht ","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Isabell","msg":"Status: not_interested | ebenfalls, sind gut Aufgestellt was das Laden angeht "}]},"ChIJldHnqnb_nkcRRx2l1RWFOU4":{"status":"not_interested","owner":"isabell","notes":"Sie laden bei sich selber ","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Isabell","msg":"Status: not_interested | Sie laden bei sich selber "}]},"ChIJYR7LfAGao0cROdLYzPt4570":{"status":"not_interested","owner":"isabell","notes":"Sie laden Ihre Autos vor Ort selber","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Isabell","msg":"Status: not_interested | Sie laden Ihre Autos vor Ort selber"}]},"ChIJ673u11k7vUcR9fHQnWQLNng":{"status":"not_interested","owner":"sebastian","notes":"Keine EV","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"","msg":"Status: not_interested | Keine EV"}]},"Louis Fulda - MotorrFulda":{"status":"called","owner":"sebastian","notes":"Servicemitarbeiter meint die Filialen vor Ort haben keine EV","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"","msg":"Status: called | Servicemitarbeiter meint die Filialen vor Ort haben keine EV"}]},"ChIJPTgmwvO0vEcRHUNOKW6ZC0c":{"status":"called","owner":"sebastian","notes":"Erst ab dem 28.07 wieder aus dem Urlaub zurück","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"","msg":"Status: called | Erst ab dem 28.07 wieder aus dem Urlaub zurück"}]},"ChIJHZkm5EEro0cRwl6j57Er3x0":{"status":"not_interested","owner":"sebastian","notes":"Keine EV","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"","msg":"Status: not_interested | Keine EV"}]},"ChIJ64fswGsEo0cR0vQiH2-nsI4":{"status":"called","owner":"sebastian","notes":"nicht erreichbar","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"","msg":"Status: called | nicht erreichbar"}]},"ChIJOxwcdlvEokcRBc0cBt7_Jkw":{"status":"not_interested","owner":"sebastian","notes":"Keine EV","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"","msg":"Status: not_interested | Keine EV"}]},"ChIJBUNaKewapEcRHDZZ4RRoloQ":{"status":"not_interested","owner":"sebastian","notes":"Keine EV","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"","msg":"Status: not_interested | Keine EV"}]},"POLO Motorrad Store Aschaffenb":{"status":"not_interested","owner":"sebastian","notes":"Keine EV","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"","msg":"Status: not_interested | Keine EV"}]},"ChIJ3y2NP3v3okcRm-6et1vg1V8":{"status":"not_interested","owner":"sebastian","notes":"Keine EV","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"","msg":"Status: not_interested | Keine EV"}]},"POLO Motorrad Store Ingolstadt":{"status":"not_interested","owner":"sebastian","notes":"Keine EV","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"","msg":"Status: not_interested | Keine EV"}]},"ChIJEXpaYnv_nkcRJ4fIhNkyGcE":{"status":"not_interested","owner":"sebastian","notes":"Keine EV","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"","msg":"Status: not_interested | Keine EV"}]},"ChIJlZ2fJGIslkcRZSBRdf934u8":{"status":"not_interested","owner":"sebastian","notes":"Keine EV","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"","msg":"Status: not_interested | Keine EV"}]},"ChIJvy8nuc6XnkcRemo37rqiR1M":{"status":"not_interested","owner":"sebastian","notes":"Sie haben nur ein Fahrzeug und dafür eine Ladeeinrichtung ","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"","msg":"Status: not_interested | Sie haben nur ein Fahrzeug und dafür eine Ladeeinrichtung "}]},"ChIJZbkFO2sXvUcRUJ9TuNrraAY":{"status":"not_interested","owner":"isabell","notes":"Laden bei sich selber","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Isabell","msg":"Status: not_interested | Laden bei sich selber"}]},"ChIJhQ_nyhL_nkcRarLKKeZTdow":{"status":"not_interested","owner":"luca","notes":"Keine EV","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Luca","msg":"Status: not_interested | Keine EV"}]},"ATU Kassel - VellmarKassel":{"status":"not_interested","owner":"sebastian","notes":"Keine EV","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"","msg":"Status: not_interested | Keine EV"}]},"ChIJE12IeaROc0ERbBl332nt2h8":{"status":"not_interested","owner":"sebastian","notes":"Keine EV","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"","msg":"Status: not_interested | Keine EV"}]},"ATU Kassel - BettenhLohfelden":{"status":"not_interested","owner":"sebastian","notes":"Keine EV","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"","msg":"Status: not_interested | Keine EV"}]},"ATU Augsburg - LechhAugsburg":{"status":"not_interested","owner":"sebastian","notes":"Keine EV","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"","msg":"Status: not_interested | Keine EV"}]},"ChIJZdEQqhRXn0cRWBVxXVy1Q-U":{"status":"called","owner":"luca","notes":"Komme nicht am KI Telefonassistent vorbei ","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Luca","msg":"Status: called | Komme nicht am KI Telefonassistent vorbei "}]},"ChIJDZhiFI1HvUcR4y52Y8igqwo":{"status":"email","owner":"luca","notes":"Haben AC Lader, haben was Laden angeht Vorgaben von Zentrale. Soll dennoch Infos per Mail schicken.","next_action":"Send Mail","email":"de.st.aschaffenburg@europcar.com","activity":[{"t":"04.08.26","ag":"Luca","msg":"Status: email | Email: de.st.aschaffenburg@europcar.com | Haben AC Lader, haben was Laden angeht Vorgaben von Zentrale"}]},"Giessen CAR - Taxi &Gießen":{"status":"not_interested","owner":"luca","notes":"Kein Interesse","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Luca","msg":"Status: not_interested | Kein Interesse"}]},"ChIJP6C62sG5pEcRUu4GWzus-QE":{"status":"not_interested","owner":"isabell","notes":"Sie sind selber gut aufgestellt was laden angeht. ","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Isabell","msg":"Status: not_interested | Sie sind selber gut aufgestellt was laden angeht. "}]},"ChIJ_____3s4vUcR2C50Jn0T840":{"status":"not_interested","owner":"isabell","notes":"Sie sind selber gut Aufgestellt ","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Isabell","msg":"Status: not_interested | Sie sind selber gut Aufgestellt "}]},"ChIJMz9BHkURvUcRXtC5Fq3d6Ow":{"status":"not_interested","owner":"isabell","notes":"Eigene Möglichkeiten","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Isabell","msg":"Status: not_interested | Eigene Möglichkeiten"}]},"ChIJpUtF0l8RvUcR1G3APiMYvLE":{"status":"not_interested","owner":"isabell","notes":"Eigene Möglichkeiten","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Isabell","msg":"Status: not_interested | Eigene Möglichkeiten"}]},"ChIJGSiQDOuXnkcRchBd1KOaT_E":{"status":"not_interested","owner":"isabell","notes":"Sie laden bei sich vor Ort ","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Isabell","msg":"Status: not_interested | Sie laden bei sich vor Ort "}]},"ChIJk6G8te5Wn0cRXceY6eyaC_c":{"status":"called","owner":"sebastian","notes":"Servicetelefon","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Sebastian","msg":"Status: called | Servicetelefon"}]},"ChIJSdpUvypAvUcR8PckmpMT2II":{"status":"not_interested","owner":"isabell","notes":"Keine E-Fahrzeuge","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Isabell","msg":"Status: not_interested | Keine E-Fahrzeuge"}]},"🚖 City Taxi EllwangeEllwangen ":{"status":"not_interested","owner":"luca","notes":"Keine EV","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Luca","msg":"Status: not_interested | Keine EV"}]},"Mercedes-Benz NurembNürnberg":{"status":"not_interested","owner":"isabell","notes":"Info zwar aufgenommen, laden aber selber vor Ort. ","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Isabell","msg":"Status: not_interested | Info zwar aufgenommen, laden aber selber vor Ort. "}]},"ChIJ1Q0MRxFXn0cRH9In4DRmciA":{"status":"not_interested","owner":"isabell","notes":"Sie sind selber gut aufgestellt ","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Isabell","msg":"Status: not_interested | Sie sind selber gut aufgestellt "}]},"ChIJdbeRrIsOoUcRknUgWvEKQTo":{"status":"not_interested","owner":"isabell","notes":"Sind gut Ausgestattet","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Isabell","msg":"Status: not_interested | Sind gut Ausgestattet"}]},"ChIJA5_QlLoapEcRxsPxVfr52NE":{"status":"not_interested","owner":"isabell","notes":"Sie sind sehr gut Ausgestattet","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Isabell","msg":"Status: not_interested | Sie sind sehr gut Ausgestattet"}]},"ChIJ5YkvRfK5pEcRP8GiPWGbdZM":{"status":"not_interested","owner":"isabell","notes":"Haben eigene Ladelösungen","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Isabell","msg":"Status: not_interested | Haben eigene Ladelösungen"}]},"ChIJS--4yBKomUcRoUQhC3qjH7A":{"status":"not_interested","owner":"luca","notes":"Eigene Ladelösung","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Luca","msg":"Status: not_interested | Eigene Ladelösung"}]},"ChIJ81JXWWsXvUcRRKgFYZmlUIE":{"status":"not_interested","owner":"luca","notes":"Eigene Ladelösung","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Luca","msg":"Status: not_interested | Eigene Ladelösung"}]},"ChIJnTjIXAD_nkcRaHgp_p8YPXY":{"status":"not_interested","owner":"luca","notes":"Laden vor Ort ","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Luca","msg":"Status: not_interested | Laden vor Ort "}]},"ChIJLRhyBwxHu0cR--Q1rohaD5E":{"status":"not_interested","owner":"luca","notes":"Eigene Ladelösung","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Luca","msg":"Status: not_interested | Eigene Ladelösung"}]},"ChIJYR7LfAGao0cRuP2QaUxHvcM":{"status":"not_interested","owner":"luca","notes":"Laden selber vor Ort ","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Luca","msg":"Status: not_interested | Laden selber vor Ort "}]},"Motorrad Apel / DucaWeimar":{"status":"called","owner":"sebastian","notes":"Servicetelefon, keine Info erhalten, MA kann keine Auskunft geben ","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"","msg":"Status: called | Servicetelefon, keine Info erhalten, MA kann keine Auskunft "}]},"ChIJsWJAQ99Xn0cRXld69B_bb80":{"status":"called","owner":"luca","notes":"MA vor Ort wissen nichts über Tarif, Laden vor Ort","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Luca","msg":"Status: called | MA vor Ort wissen nichts über Tarif, Laden vor Ort"}]},"ChIJ0SAuCcYapEcRb3itxxepFzQ":{"status":"called","owner":"luca","notes":"gleiches wie Oben, KI Telefon ","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Luca","msg":"Status: called | gleiches wie Oben, KI Telefon "}]},"POLO Motorrad Store Lohfelden":{"status":"not_interested","owner":"sebastian","notes":"Keine Betriebsfahrzeuge im Store","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"","msg":"Status: not_interested | Keine Betriebsfahrzeuge im Store"}]},"HS FahrzeugteileSchlüchter":{"status":"not_interested","owner":"sebastian","notes":"Keine EV","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"","msg":"Status: not_interested | Keine EV"}]},"Winkler FahrzeugteilLohfelden":{"status":"not_interested","owner":"sebastian","notes":"Keine EV","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"","msg":"Status: not_interested | Keine EV"}]},"ChIJJdjFb2s3o0cRnoP_trbY6mQ":{"status":"not_interested","owner":"luca","notes":"Keine EV","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Luca","msg":"Status: not_interested | Keine EV"}]},"ChIJpWfv6xMXvUcRhPGP5WChYmE":{"status":"not_interested","owner":"luca","notes":"Servicetelefon","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Luca","msg":"Status: not_interested | Servicetelefon"}]},"ChIJi0BNoVCXnkcRnNrq_AYu4tw":{"status":"called","owner":"luca","notes":"Servicetelefon, MA keine Info","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Luca","msg":"Status: called | Servicetelefon, MA keine Info"}]},"ChIJVaLqIcJWn0cRuNG6KhoxxnQ":{"status":"not_interested","owner":"sebastian","notes":"Selber gut aufgestellt","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"","msg":"Status: not_interested | Selber gut aufgestellt"}]},"ATI Sadi Autoteile GNürnberg":{"status":"not_interested","owner":"sebastian","notes":"Keine Betrieblichen EV","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"","msg":"Status: not_interested | Keine Betrieblichen EV"}]},"ATU Nürnberg - HöfenNürnberg":{"status":"not_interested","owner":"sebastian","notes":"Keine Betriebsfahrzeuge vom Store aus","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"","msg":"Status: not_interested | Keine Betriebsfahrzeuge vom Store aus"}]},"ATU FuldaFulda":{"status":"not_interested","owner":"sebastian","notes":"Keine Betriebsfahrzeuge vor Ort ","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"","msg":"Status: not_interested | Keine Betriebsfahrzeuge vor Ort "}]},"ATU Schwäbisch GmündSchwäbisch":{"status":"not_interested","owner":"sebastian","notes":"Keine Betriebsfahrzeuge vor Ort","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"","msg":"Status: not_interested | Keine Betriebsfahrzeuge vor Ort"}]},"ATU Würzburg - ZelleHöchberg":{"status":"called","owner":"sebastian","notes":"KI Telefon","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"","msg":"Status: called | KI Telefon"}]},"Carglass GmbH KasselLohfelden":{"status":"called","owner":"sebastian","notes":"Servicetelefon, nicht vor Ort angekommen. Können nichts sagen ","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"","msg":"Status: called | Servicetelefon, nicht vor Ort angekommen. Können nichts sage"}]},"ATU EschwegeEschwege":{"status":"not_interested","owner":"sebastian","notes":"Keine EV im Store","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"","msg":"Status: not_interested | Keine EV im Store"}]},"VW, VW NutzfahrzeugeAschaffenb":{"status":"not_interested","owner":"luca","notes":"Haben eigene DC-Lader, sind nicht voll ausgelastet.","next_action":"Ignore","email":"","activity":[{"t":"04.08.26","ag":"Luca","msg":"Status: not_interested | Haben eigene DC-Lader, sind nicht voll ausgelastet."}]},"Autohaus Beil GmbH HGießen":{"status":"not_interested","owner":"luca","notes":"Eigene Lösung","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Luca","msg":"Status: not_interested | Eigene Lösung"}]},"ChIJg2JEV5o4u0cRfRJskDdfniY":{"status":"not_interested","owner":"luca","notes":"Eigene Lösung","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Luca","msg":"Status: not_interested | Eigene Lösung"}]},"Porsche Classic ZentLohfelden":{"status":"not_interested","owner":"luca","notes":"Laden selber vor Ort ","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Luca","msg":"Status: not_interested | Laden selber vor Ort "}]},"AHG Suhl – VolkswageSuhl":{"status":"not_interested","owner":"luca","notes":"Sie laden selber vor Ort ","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Luca","msg":"Status: not_interested | Sie laden selber vor Ort "}]},"ATU GiessenGießen":{"status":"called","owner":"sebastian","notes":"KI Telefon","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"","msg":"Status: called | KI Telefon"}]},"Autohaus Schnurrer GMünchberg":{"status":"not_interested","owner":"luca","notes":"Eigene Ladelösung vor Ort ","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Luca","msg":"Status: not_interested | Eigene Ladelösung vor Ort "}]},"Avemo, Gelder & SorgZeil am Ma":{"status":"not_interested","owner":"luca","notes":"Sie laden selber vor Ort ","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Luca","msg":"Status: not_interested | Sie laden selber vor Ort "}]},"ChIJ79YWARsbpEcRR1PCIRmeio0":{"status":"not_interested","owner":"luca","notes":"Sie sind gut selber Ausgestattet","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Luca","msg":"Status: not_interested | Sie sind gut selber Ausgestattet"}]},"ChIJZ1ThgfG5pEcRqKzfqPBAOY8":{"status":"not_interested","owner":"luca","notes":"Sie laden selber","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Luca","msg":"Status: not_interested | Sie laden selber"}]},"ChIJVVWldPO5pEcRV8UIadlgnXk":{"status":"not_interested","owner":"luca","notes":"Laden vor Ort","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Luca","msg":"Status: not_interested | Laden vor Ort"}]},"Autohaus Peter GmbH Heilbad He":{"status":"not_interested","owner":"luca","notes":"Eigene Lösung vor Ort ","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Luca","msg":"Status: not_interested | Eigene Lösung vor Ort "}]},"Fiat - Autohaus BrasAschaffenb":{"status":"not_interested","owner":"sebastian","notes":"Eigene Ladelösung vor Ort ","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"","msg":"Status: not_interested | Eigene Ladelösung vor Ort "}]},"ChIJVVUVI_w3vUcRPtE_sQqaPPs":{"status":"not_interested","owner":"sebastian","notes":"Eigene Ladelösung","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"","msg":"Status: not_interested | Eigene Ladelösung"}]},"Motorrad-RiekeGießen":{"status":"not_interested","owner":"sebastian","notes":"Keine EV","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"","msg":"Status: not_interested | Keine EV"}]},"ChIJv5_1odsbpEcRi0rcJbxwy7U":{"status":"email","owner":"isabell","notes":"Servicetelefon, können es per Mail schicken","next_action":"","email":"reservierung@avis.de","activity":[{"t":"04.08.26","ag":"Isabell","msg":"Status: email | Email: reservierung@avis.de | Servicetelefon, können es per Mail schicken"}]},"ChIJq_bFUvQHmUcRQ6_sRnCPz0c":{"status":"not_interested","owner":"isabell","notes":"Sie laden selber vor Ort.","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Isabell","msg":"Status: not_interested | Sie laden selber vor Ort."}]},"ChIJTQPc-b33okcRfWNy9mmAh-Y":{"status":"not_interested","owner":"luca","notes":"Keine EV","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Luca","msg":"Status: not_interested | Keine EV"}]},"Lutz Volkmar Bus- unSuhl":{"status":"not_interested","owner":"luca","notes":"Keine EV","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Luca","msg":"Status: not_interested | Keine EV"}]},"Taxi Shah. Taxi in WWorms":{"status":"not_interested","owner":"luca","notes":"Keine EV","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Luca","msg":"Status: not_interested | Keine EV"}]},"ChIJ0-QIPy0_u0cRXBK5Uq4JYv4":{"status":"email","owner":"isabell","notes":"Servicetelefon, sollen Infos per Mail schicken","next_action":"Infos per Mail","email":"kundenbetreuung@sixt.com","activity":[{"t":"04.08.26","ag":"Isabell","msg":"Status: email | Email: kundenbetreuung@sixt.com | Servicetelefon, sollen Infos per Mail schicken"}]},"ChIJ_9zMa5c2o0cR5t5FG3I-Nkc":{"status":"called","owner":"isabell","notes":"Servicetelefon, MA sagt wir sollen Info an allgemeine E-Mail schicken. ","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Isabell","msg":"Status: called | Servicetelefon, MA sagt wir sollen Info an allgemeine E-Mail"}]},"ChIJB_axQedHvUcROabv2gWbaWQ":{"status":"called","owner":"isabell","notes":"KI Servicetelefon, komme nicht weiter ","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Isabell","msg":"Status: called | KI Servicetelefon, komme nicht weiter "}]},"ChIJV7rqMpb3okcRkpsPPitFxHA":{"status":"not_interested","owner":"isabell","notes":"Sie haben selber Ladesäulen ","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Isabell","msg":"Status: not_interested | Sie haben selber Ladesäulen "}]},"Europcar IngolstadtIngolstadt":{"status":"email","owner":"isabell","notes":"Infos am besten per Mail","next_action":"Infos per Mail ","email":"infomaster@europcar.com","activity":[{"t":"04.08.26","ag":"Isabell","msg":"Status: email | Email: infomaster@europcar.com | Infos am besten per Mail"}]},"ChIJj0D_jI9YvEcR3Lb7bQgg0Jk":{"status":"called","owner":"isabell","notes":"Servicetelefon, Sie können dazu nichts sagen, konnte mir keinen AP nennen ","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Isabell","msg":"Status: called | Servicetelefon, Sie können dazu nichts sagen, konnte mir kei"}]},"ChIJ_Wow15c1mUcRiQA47KMdAG0":{"status":"email","owner":"isabell","notes":"Siehe oben, Servicemitarbeiter können dazu nichts sagen. Info am besten per Mail mitteilen. ","next_action":"","email":"webmaster_de@hertz.com","activity":[{"t":"04.08.26","ag":"Isabell","msg":"Status: email | Email: webmaster_de@hertz.com | Siehe oben, Servicemitarbeiter können dazu nichts sagen. Inf"}]},"ChIJUQI_COWXnkcRnFGzePgIhDY":{"status":"not_interested","owner":"isabell","notes":"Sie laden selber vor Ort","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Isabell","msg":"Status: not_interested | Sie laden selber vor Ort"}]},"Taxi services ChristSchweinfur":{"status":"not_interested","owner":"luca","notes":"Keine EV","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Luca","msg":"Status: not_interested | Keine EV"}]},"ChIJyaPpGgxIvUcRP4HbJoYr-Vw":{"status":"called","owner":"isabell","notes":"Servicetelefon, dort kann niemand was sagen, vielleicht Infos direkt per Mail senden. ","next_action":"webmaster_de@hertz.com","email":"","activity":[{"t":"04.08.26","ag":"Isabell","msg":"Status: called | Servicetelefon, dort kann niemand was sagen, vielleicht Info"}]},"ChIJlUpSvxodAYoRW0-uu2DJvI8":{"status":"not_interested","owner":"sebastian","notes":"Keine EV","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Sebastian","msg":"Status: not_interested | Keine EV"}]},"Carglass GmbH DieburGroß-Zimme":{"status":"called","owner":"sebastian","notes":"Servicetelefon ","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"","msg":"Status: called | Servicetelefon "}]},"BRK Kreisverband RhöBad Neusta":{"status":"not_interested","owner":"sebastian","notes":"Sie haben eigene Ladelösungen durch Photovoltaik auf dem Dach und laden direkt bei sich vor Ort","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Sebastian","msg":"Status: not_interested | Sie haben eigene Ladelösungen durch Photovoltaik auf dem Dac"}]},"ChIJualxuGYslkcRHjfCydxk1cw":{"status":"not_interested","owner":"sebastian","notes":"Keine EV, wollen auch keine Anschaffen","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"","msg":"Status: not_interested | Keine EV, wollen auch keine Anschaffen"}]},"ChIJA7ngrRgXvUcRQS5B2Nhxn-c":{"status":"not_interested","owner":"sebastian","notes":"Keine EV","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Sebastian","msg":"Status: not_interested | Keine EV"}]},"ChIJJfaiMbqXnkcRP3xaCGIzzv8":{"status":"called","owner":"sebastian","notes":"Servicetelefon","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Sebastian","msg":"Status: called | Servicetelefon"}]},"Taxi Dienst 24 QaziNiederdorf":{"status":"not_interested","owner":"sebastian","notes":"Keine EV","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Sebastian","msg":"Status: not_interested | Keine EV"}]},"ChIJg9PWjE0bpEcReLas5wsCJAg":{"status":"called","owner":"sebastian","notes":"Servicetelefon","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"","msg":"Status: called | Servicetelefon"}]},"ChIJNUNkRtUWvUcRz7NetBYSeHw":{"status":"not_interested","owner":"sebastian","notes":"Keine EV","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Sebastian","msg":"Status: not_interested | Keine EV"}]},"FDZ - Fahrdienst fürNürnberg":{"status":"not_interested","owner":"sebastian","notes":"Keine EV","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Sebastian","msg":"Status: not_interested | Keine EV"}]},"HP Fahrdienst HeribeEppstein":{"status":"called","owner":"sebastian","notes":"Nummer nicht vergeben","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Sebastian","msg":"Status: called | Nummer nicht vergeben"}]},"ViamedGO Gießen & MiStaufenber":{"status":"interested","owner":"sebastian","notes":"Sie haben noch keine EV, sind aber gerade dran. Gerne Infos per Mail schicken","next_action":"","email":"dispo@viamedgiessen.de","activity":[{"t":"04.08.26","ag":"Sebastian","msg":"Status: interested | Email: dispo@viamedgiessen.de | Sie haben noch keine EV, sind aber gerade dran. Gerne Infos "}]},"BeHiRo e.V. Kranken-Groß-Zimme":{"status":"not_interested","owner":"sebastian","notes":"Keine EV","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Sebastian","msg":"Status: not_interested | Keine EV"}]},"Taxi am BahnhofIlmenau":{"status":"not_interested","owner":"isabell","notes":"Keine E-Fahrzeuge ","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Isabell","msg":"Status: not_interested | Keine E-Fahrzeuge "}]},"ChIJm4S0pBz2vEcRXTkRVN-STR4":{"status":"called","owner":"isabell","notes":"Servicetelefon, MA hat Info aufgenommen und weitergeleitet","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Isabell","msg":"Status: called | Servicetelefon, MA hat Info aufgenommen und weitergeleitet"}]},"Senior Aktiv KrankenBodenheim":{"status":"not_interested","owner":"isabell","notes":"Sie haben keine E-Fahrzeuge ","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Isabell","msg":"Status: not_interested | Sie haben keine E-Fahrzeuge "}]},"Raben Trans EuropeanNürnberg":{"status":"called","owner":"sebastian","notes":"Bin im Kundenservicetelefon gelandet, hier konnte mir keiner weiterhelfen oder eine Info geben","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"","msg":"Status: called | Bin im Kundenservicetelefon gelandet, hier konnte mir keiner"}]},"Nagel-Group | KasselLohfelden":{"status":"not_interested","owner":"sebastian","notes":"Ladelösung vor Ort ","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"","msg":"Status: not_interested | Ladelösung vor Ort "}]},"ChIJA3_2yuGmPAQREGyDGBnj9D4":{"status":"not_interested","owner":"isabell","notes":"Keine E-Fahrzeuge ","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Isabell","msg":"Status: not_interested | Keine E-Fahrzeuge "}]},"ChIJDeSDOa73vEcRGE3r-E8IfUI":{"status":"called","owner":"sebastian","notes":"Servicdetelefon","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Sebastian","msg":"Status: called | Servicdetelefon"}]},"ChIJnaTGQ0IFo0cR3WCd3KTdP1M":{"status":"called","owner":"sebastian","notes":"Servicetelefon","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Sebastian","msg":"Status: called | Servicetelefon"}]},"ChIJ-0Ptr4c3o0cR1eZnRUep2F0":{"status":"not_interested","owner":"isabell","notes":"Keine E-Fahrzeuge ","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Isabell","msg":"Status: not_interested | Keine E-Fahrzeuge "}]},"ChIJhVVtbBEXvUcRy2exmv66Ebg":{"status":"not_interested","owner":"isabell","notes":"Keine E-Fahrzeuge","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Isabell","msg":"Status: not_interested | Keine E-Fahrzeuge"}]},"Krankenfahrten HuhnSchlüchter":{"status":"not_interested","owner":"isabell","notes":"Keine E-Fahrzeuge","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Isabell","msg":"Status: not_interested | Keine E-Fahrzeuge"}]},"Fahrdienst Annabell Föritztal":{"status":"not_interested","owner":"isabell","notes":"Keine E-Fahrzeuge","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Isabell","msg":"Status: not_interested | Keine E-Fahrzeuge"}]},"R&K Fahrdienst-KrankWorms":{"status":"not_interested","owner":"isabell","notes":"Keine Elektrofahrzeuge im Bestand","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Isabell","msg":"Status: not_interested | Keine Elektrofahrzeuge im Bestand"}]},"ChIJb48RRWQXvUcRlYxR1RgDLWY":{"status":"called","owner":"sebastian","notes":"Servicetelefon","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Sebastian","msg":"Status: called | Servicetelefon"}]},"AST Haltestelle MüncMünchberg":{"status":"not_interested","owner":"sebastian","notes":"Eigene Ladelösung ","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"","msg":"Status: not_interested | Eigene Ladelösung "}]},"Yvonne Frankenberg BHeilbad He":{"status":"not_interested","owner":"isabell","notes":"Keine E-Fahrzeuge ","next_action":"","email":"","activity":[{"t":"04.08.26","ag":"Isabell","msg":"Status: not_interested | Keine E-Fahrzeuge "}]},"universal-transport-staufenberg":{"status":"interested","owner":"isabell","notes":"Sie haben LKW im Bestand, sollen gerne mehr Infos per Mail schicken, sofern Sie auch LKW nachts dort laden können","next_action":"Infos per Mail","email":"giessen@gruber-logistics.com","activity":[{"t":"04.08.26","ag":"Isabell","msg":"Interested — LKW im Bestand | Email: giessen@gruber-logistics.com"}]},"huck-finn-logistik-weimar":{"status":"interested","owner":"sebastian","notes":"Sie gibt es dem Chef weiter, könnte in Betracht kommen","next_action":"","email":"info@huckfinn-umzug.de","activity":[{"t":"04.08.26","ag":"Sebastian","msg":"Interested — Chef weiterleiten | Email: info@huckfinn-umzug.de"}]}};
+    const existing = localStorage.getItem(KEY);
+    const existingData = existing ? JSON.parse(existing) : {};
+    const merged = Object.assign({}, imported);
+    for(const id of Object.keys(existingData)){
+      if(existingData[id] && existingData[id].status && existingData[id].status !== 'new'){
+        merged[id] = existingData[id];
+      } else if(existingData[id] && (existingData[id].notes || existingData[id].email)){
+        merged[id] = existingData[id];
+      }
+    }
+    localStorage.setItem(KEY, JSON.stringify(merged));
+  } catch(e){}
+})();
+
+buildLogin();
+
+</script>
+</body>
+</html>
